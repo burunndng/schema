@@ -4,6 +4,7 @@ import TestScreen from './components/TestScreen';
 import ReviewScreen from './components/ReviewScreen';
 import LoadingScreen from './components/LoadingScreen';
 import ResultsScreen from './components/ResultsScreen';
+import { PersistentChatbot } from './components/PersistentChatbot';
 import { Button } from './components/common/Button';
 import { Card } from './components/common/Card';
 import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPICategoryScores, YPICategory, Question, SMITestResult, SchemaMode, OITestResult, OICategory, TestType } from './types';
@@ -156,6 +157,9 @@ const App: React.FC = () => {
                     <p>© 2024 Mindful Path. All rights reserved.</p>
                 </div>
             </footer>
+
+            {/* Persistent Chatbot - Always accessible after completing at least one test */}
+            <PersistentChatbot allResults={allTestResults} />
         </div>
     );
 };
