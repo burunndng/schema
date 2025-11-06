@@ -1,28 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { TestResult, TestType, ChatMessage } from '../types';
+import { TestResult, TestType, ChatMessage, Test, Answers } from '../types';
 import { getChatbotResponse } from '../services/geminiService';
 import { Button } from './common/Button';
 
 interface PersistentChatbotProps {
     allResults: Partial<Record<TestType, TestResult>>;
+    currentTest: Test | null;
+    answers: Answers;
 }
 
-export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults }) => {
+export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults, currentTest, answers }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [userInput, setUserInput] = useState('');
     const [isLoadingChat, setIsLoadingChat] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
-    const hasCompletedTests = Object.keys(allResults).length > 0;
-    const latestTest = Object.values(allResults)[Object.values(allResults).length - 1];
+    const latestTest = Object.values(allResults)[Object.values(allResults).length - 1] || null;
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages]);
 
     const handleSendMessage = async () => {
-        if (!userInput.trim() || isLoadingChat || !latestTest) return;
+        if (!userInput.trim() || isLoadingChat) return;
 
         const userMessage: ChatMessage = {
             role: 'user',
@@ -34,7 +35,7 @@ export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults
         setIsLoadingChat(true);
 
         try {
-            const response = await getChatbotResponse(userInput.trim(), latestTest, allResults);
+            const response = await getChatbotResponse(userInput.trim(), latestTest, allResults, currentTest, answers);
             const botMessage: ChatMessage = {
                 role: 'assistant',
                 content: response
@@ -50,8 +51,6 @@ export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults
             setIsLoadingChat(false);
         }
     };
-
-    if (!hasCompletedTests) return null;
 
     return (
         <>
@@ -92,12 +91,22 @@ export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults
                     <div className="flex-1 overflow-y-auto p-4 space-y-4">
                         {chatMessages.length === 0 ? (
                             <div className="text-center py-8 text-[var(--text-secondary)]">
-                                <p className="text-sm mb-3">Ask me anything about your results!</p>
+                                <p className="text-sm mb-3">{latestTest ? 'Ask me anything about your results!' : 'Ask me anything about Schema Therapy!'}</p>
                                 <div className="space-y-2 text-xs">
                                     <p className="text-[var(--primary-400)]">Try asking:</p>
-                                    <p>"Why do I have high Abandonment?"</p>
-                                    <p>"How can I work on my schemas?"</p>
-                                    <p>"What's the connection between my tests?"</p>
+                                    {latestTest ? (
+                                        <>
+                                            <p>"Why did I answer that way on Q5?"</p>
+                                            <p>"What does my score mean?"</p>
+                                            <p>"How can I work on this?"</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p>"What is Schema Therapy?"</p>
+                                            <p>"What are schema modes?"</p>
+                                            <p>"How do schemas form?"</p>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ) : (

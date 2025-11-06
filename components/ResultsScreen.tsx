@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOMServer from 'react-dom/server';
-import { TestResult, YSCTestResult, YPITestResult, OITestResult, SMITestResult, Schema, Question, TestType, AllFeedback, GeminiFeedback, GeminiSMIFeedback, GeminiOIFeedback, GeminiParentingFeedback, ChatMessage } from '../types';
+import { TestResult, YSCTestResult, YPITestResult, OITestResult, SMITestResult, Schema, Question, TestType, AllFeedback, GeminiFeedback, GeminiSMIFeedback, GeminiOIFeedback, GeminiParentingFeedback, ChatMessage, Test, Answers } from '../types';
 import { SCHEMA_DEFINITIONS, SMI_MODE_DETAILS, OI_CATEGORY_DEFINITIONS, YPI_CATEGORY_DEFINITIONS, YPI_QUESTION_TO_CATEGORY_MAP, TESTS } from '../constants';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
@@ -14,6 +14,8 @@ interface ResultsScreenProps {
   onReset: () => void;
   caregiverNames: { c1: string, c2: string };
   userName: string;
+  currentTest: Test | null;
+  answers: Answers;
 }
 
 const ScoreBar: React.FC<{ label: string; score: number; maxScore: number; }> = ({ label, score, maxScore }) => {
@@ -282,7 +284,7 @@ const GeminiFeedbackDisplay = ({ feedback }: { feedback: AllFeedback }) => {
     );
 };
 
-const ResultsScreen: React.FC<ResultsScreenProps> = ({ currentResult, allResults, onReset, caregiverNames, userName }) => {
+const ResultsScreen: React.FC<ResultsScreenProps> = ({ currentResult, allResults, onReset, caregiverNames, userName, currentTest, answers }) => {
 
   const allTestsCompleted = Object.keys(allResults).length === TESTS.length;
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -319,7 +321,7 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ currentResult, allResults
     setIsLoadingChat(true);
 
     try {
-      const response = await getChatbotResponse(userInput.trim(), currentResult, allResults);
+      const response = await getChatbotResponse(userInput.trim(), currentResult, allResults, currentTest, answers);
       const botMessage: ChatMessage = {
         role: 'assistant',
         content: response

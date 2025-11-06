@@ -118,7 +118,7 @@ const App: React.FC = () => {
             case 'loading':
                 return <LoadingScreen />;
             case 'results':
-                return currentTestResult && <ResultsScreen currentResult={currentTestResult} allResults={allTestResults} onReset={handleReset} caregiverNames={caregiverNames} userName={userName} />;
+                return currentTestResult && <ResultsScreen currentResult={currentTestResult} allResults={allTestResults} onReset={handleReset} caregiverNames={caregiverNames} userName={userName} currentTest={selectedTest} answers={answers} />;
             case 'error':
                  return (
                     <Card className="text-center border-red-500/50">
@@ -158,8 +158,8 @@ const App: React.FC = () => {
                 </div>
             </footer>
 
-            {/* Persistent Chatbot - Always accessible after completing at least one test */}
-            <PersistentChatbot allResults={allTestResults} />
+            {/* Persistent Chatbot - Always accessible */}
+            <PersistentChatbot allResults={allTestResults} currentTest={selectedTest} answers={answers} />
         </div>
     );
 };
