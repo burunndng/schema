@@ -168,3 +168,8 @@ export interface GeminiOIFeedback {
 export type AllFeedback = GeminiFeedback | GeminiParentingFeedback | GeminiSMIFeedback | GeminiOIFeedback;
 
 export type AppState = 'welcome' | 'testing' | 'review' | 'loading' | 'results' | 'error';
+
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
