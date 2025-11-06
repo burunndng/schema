@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { SchemaScore, YPICategoryScores, GeminiFeedback, GeminiParentingFeedback, SchemaModeScore, GeminiSMIFeedback, OIScore, GeminiOIFeedback, TestResult, TestType } from '../types';
+import { SchemaScore, YPICategoryScores, GeminiFeedback, GeminiParentingFeedback, SchemaModeScore, GeminiSMIFeedback, OIScore, GeminiOIFeedback, TestResult, TestType, Test, Answers } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
@@ -142,78 +142,88 @@ export const getOIFeedback = async (scores: OIScore[]): Promise<GeminiOIFeedback
 
 export const getChatbotResponse = async (
     userQuestion: string,
-    currentResult: TestResult,
-    allResults: Partial<Record<TestType, TestResult>>
+    currentResult: TestResult | null,
+    allResults: Partial<Record<TestType, TestResult>>,
+    currentTest: Test | null,
+    answers: Answers
 ): Promise<string> => {
     // Build context from test results
     let resultsContext = '';
 
-    // Add current test results
-    if (currentResult.type === 'YSQ') {
-        const topSchemas = currentResult.scores
-            .filter(s => s.score >= 4)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5);
-        resultsContext += `Young Schema Questionnaire (YSQ) Results:\n`;
-        resultsContext += `Total Score: ${currentResult.totalScore}\n`;
-        resultsContext += `Top Schemas:\n${topSchemas.map(s => `  - ${s.schema}: ${s.score.toFixed(1)}/6`).join('\n')}\n\n`;
-    } else if (currentResult.type === 'SMI') {
-        const topModes = currentResult.scores
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5);
-        resultsContext += `Schema Mode Inventory (SMI) Results:\n`;
-        resultsContext += `Top Modes:\n${topModes.map(m => `  - ${m.mode}: ${m.score.toFixed(1)}/6`).join('\n')}\n\n`;
-    } else if (currentResult.type === 'OI') {
-        const topPatterns = currentResult.scores
-            .filter(s => s.score >= 4)
-            .sort((a, b) => b.score - a.score);
-        resultsContext += `Overcompensation Inventory (OI) Results:\n`;
-        resultsContext += `Top Patterns:\n${topPatterns.map(p => `  - ${p.category}: ${p.score.toFixed(1)}/6`).join('\n')}\n\n`;
-    } else if (currentResult.type === 'YPI') {
-        resultsContext += `Young Parenting Inventory (YPI) Results:\n`;
-        resultsContext += `Patterns identified in caregiver relationships.\n\n`;
+    // If user has completed tests, show full Q&A
+    if (currentResult && currentTest) {
+        resultsContext += `=== COMPLETED TEST: ${currentTest.title} ===\n\n`;
+
+        // Include FULL questions and answers
+        if (currentTest.type === 'YSQ' || currentTest.type === 'SMI' || currentTest.type === 'OI') {
+            currentTest.questions.forEach((q, idx) => {
+                const answer = answers[q.id];
+                if (answer !== undefined) {
+                    resultsContext += `Q${idx + 1}: ${q.text}\nAnswer: ${answer}/6\n\n`;
+                }
+            });
+        } else if (currentTest.type === 'YPI') {
+            // YPI has two caregivers
+            currentTest.questions.forEach((q, idx) => {
+                const answerC1 = answers[`${q.id}_c1`];
+                const answerC2 = answers[`${q.id}_c2`];
+                resultsContext += `Q${idx + 1}: ${q.text}\nCaregiver 1: ${answerC1}/6 | Caregiver 2: ${answerC2}/6\n\n`;
+            });
+        }
+
+        // Add calculated scores
+        if (currentResult.type === 'YSQ') {
+            const topSchemas = currentResult.scores
+                .filter(s => s.score >= 4)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5);
+            resultsContext += `\n=== CALCULATED SCORES ===\n`;
+            resultsContext += `Total Score: ${currentResult.totalScore}\n`;
+            resultsContext += `Top Schemas:\n${topSchemas.map(s => `  - ${s.schema}: ${s.score.toFixed(1)}/6`).join('\n')}\n\n`;
+        } else if (currentResult.type === 'SMI') {
+            const topModes = currentResult.scores
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5);
+            resultsContext += `\n=== CALCULATED SCORES ===\n`;
+            resultsContext += `Top Modes:\n${topModes.map(m => `  - ${m.mode}: ${m.score.toFixed(1)}/6`).join('\n')}\n\n`;
+        } else if (currentResult.type === 'OI') {
+            const topPatterns = currentResult.scores
+                .filter(s => s.score >= 4)
+                .sort((a, b) => b.score - a.score);
+            resultsContext += `\n=== CALCULATED SCORES ===\n`;
+            resultsContext += `Top Patterns:\n${topPatterns.map(p => `  - ${p.category}: ${p.score.toFixed(1)}/6`).join('\n')}\n\n`;
+        } else if (currentResult.type === 'YPI') {
+            resultsContext += `\n=== RESULTS ===\n`;
+            resultsContext += `Patterns identified in caregiver relationships.\n\n`;
+        }
+
+        // Add other completed tests summary
+        Object.entries(allResults).forEach(([testType, result]) => {
+            if (result && result.type !== currentResult.type) {
+                if (result.type === 'YSQ') {
+                    const topSchemas = result.scores.filter(s => s.score >= 4).slice(0, 3);
+                    resultsContext += `Also completed YSQ - Top schemas: ${topSchemas.map(s => s.schema).join(', ')}\n`;
+                } else if (result.type === 'SMI') {
+                    const topModes = result.scores.sort((a, b) => b.score - a.score).slice(0, 3);
+                    resultsContext += `Also completed SMI - Top modes: ${topModes.map(m => m.mode).join(', ')}\n`;
+                } else if (result.type === 'OI') {
+                    const topPatterns = result.scores.filter(s => s.score >= 4);
+                    resultsContext += `Also completed OI - Top patterns: ${topPatterns.map(p => p.category).join(', ')}\n`;
+                } else if (result.type === 'YPI') {
+                    resultsContext += `Also completed YPI - Parenting patterns inventory\n`;
+                }
+            }
+        });
     }
 
-    // Add other completed tests to context
-    Object.entries(allResults).forEach(([testType, result]) => {
-        if (result && result.type !== currentResult.type) {
-            if (result.type === 'YSQ') {
-                const topSchemas = result.scores.filter(s => s.score >= 4).slice(0, 3);
-                resultsContext += `Also completed YSQ - Top schemas: ${topSchemas.map(s => s.schema).join(', ')}\n`;
-            } else if (result.type === 'SMI') {
-                const topModes = result.scores.sort((a, b) => b.score - a.score).slice(0, 3);
-                resultsContext += `Also completed SMI - Top modes: ${topModes.map(m => m.mode).join(', ')}\n`;
-            } else if (result.type === 'OI') {
-                const topPatterns = result.scores.filter(s => s.score >= 4);
-                resultsContext += `Also completed OI - Top patterns: ${topPatterns.map(p => p.category).join(', ')}\n`;
-            } else if (result.type === 'YPI') {
-                resultsContext += `Also completed YPI - Parenting patterns inventory\n`;
-            }
-        }
-    });
-
-    const systemInstruction = `You are a knowledgeable, compassionate assistant trained in Schema Therapy principles. Your role is to answer questions about psychological assessment results in a supportive, educational manner.
-
-Key Guidelines:
-- You are NOT a therapist and cannot provide therapy or clinical diagnosis
-- Provide psychoeducational information about schemas, modes, and coping patterns
-- Be warm, supportive, and non-judgmental
-- Explain concepts in simple, accessible language
-- When discussing difficult topics, be gentle and validating
-- Suggest self-reflection questions rather than definitive answers
-- If asked about treatment, recommend seeking a qualified Schema Therapy practitioner
-- Connect schemas to everyday life experiences and patterns
-- When relevant, explain how different schemas or modes might interact
-- Always include a brief reminder that this is educational, not diagnostic
-
-Answer their question thoughtfully, drawing on their specific results when relevant.`;
+    const systemInstruction = resultsContext
+        ? `You're a chill Schema Therapy guide. Keep it under 50 words, friendly and conversational. You're here to teach, not diagnose. Be warm, real, and helpful. If they ask about their results, reference their specific answers and scores. Make complex stuff simple.`
+        : `You're a friendly Schema Therapy educator. Keep responses under 50 words. Teach about schemas, modes, and coping patterns in a laid-back way. You're NOT a therapist. Be warm, helpful, and make it conversational. The user hasn't taken any tests yet, so focus on general Schema Therapy education.`;
 
     // Combine results context with user question
-    const fullPrompt = `Here are the user's psychological assessment results:
-
-${resultsContext}
-
-User's question: ${userQuestion}`;
+    const fullPrompt = resultsContext
+        ? `${resultsContext}\n\nUser's question: ${userQuestion}`
+        : `User's question: ${userQuestion}`;
 
     const response = await ai.models.generateContent({
         model: 'models/gemini-robotics-er-1.5-preview',
@@ -223,5 +233,5 @@ User's question: ${userQuestion}`;
         },
     });
 
-    return response.text ?? 'I apologize, but I was unable to generate a response. Please try rephrasing your question.';
+    return response.text ?? 'Sorry, something went wrong. Try again?';
 };
