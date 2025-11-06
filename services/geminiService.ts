@@ -21,7 +21,7 @@ export const getYSQFeedback = async (scores: SchemaScore[]): Promise<GeminiFeedb
     const topSchemas = significantSchemas.sort((a, b) => b.score - a.score).slice(0, 3);
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'models/gemini-robotics-er-1.5-preview',
         contents: `Analyze the following schema scores: ${JSON.stringify(topSchemas)}. Provide an explanation and 2-3 reflection points for each.`,
         config: {
             systemInstruction: `You are a helpful assistant trained in Schema Therapy principles. Your role is to provide supportive and insightful feedback based on quiz results. You are not a therapist. Always provide a disclaimer that this is not a diagnosis. Focus on the top 3 schemas provided. For each schema, provide a brief, gentle explanation of how it might manifest in daily life and 2-3 concise, actionable reflection points as a list.`,
@@ -52,7 +52,7 @@ export const getYSQFeedback = async (scores: SchemaScore[]): Promise<GeminiFeedb
 
 export const getParentingFeedback = async (scores: YPICategoryScores, names: { c1: string, c2: string }): Promise<GeminiParentingFeedback | null> => {
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'models/gemini-robotics-er-1.5-preview',
         contents: `Analyze these parenting inventory results for two caregivers, ${names.c1} and ${names.c2}. Results: ${JSON.stringify(scores)}. Identify the top category for each, explain it, provide reflection points, and compare the two caregivers.`,
         config: {
             systemInstruction: `You are an assistant with knowledge of parenting styles and their potential impact on development, based on Schema Therapy. You are not a therapist. Analyze the provided data, which shows categories where a user rated a caregiver 4 or higher. For each caregiver, identify the category with the most high scores as their 'topCategory'. Provide a gentle explanation and 2-3 reflection points. Then, provide a brief 'comparison' of the two parenting styles. Always include a disclaimer.`,
@@ -86,7 +86,7 @@ export const getSMIFeedback = async (scores: SchemaModeScore[]): Promise<GeminiS
     if (significantModes.length === 0 && (!healthyAdultScore || healthyAdultScore.score < 4.0)) return null;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'models/gemini-robotics-er-1.5-preview',
         contents: `Analyze these schema mode scores. Top maladaptive modes: ${JSON.stringify(significantModes)}. Healthy Adult score: ${JSON.stringify(healthyAdultScore)}. Provide explanations, reflection points, commentary on the Healthy Adult score, and how the modes might interact.`,
         config: {
             systemInstruction: `You are an assistant trained in Schema Therapy concepts, specifically Schema Modes. Your task is to provide feedback on a user's Schema Mode Inventory results. For each of the top 3 maladaptive modes, provide a gentle explanation and 2-3 reflection points. Provide specific commentary on the Healthy Adult score, noting its strength or areas for growth. Provide a paragraph on how the identified modes might interact. Always include a disclaimer that this is not a diagnosis.`,
@@ -111,7 +111,7 @@ export const getOIFeedback = async (scores: OIScore[]): Promise<GeminiOIFeedback
     if (significantPatterns.length === 0) return null;
 
      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'models/gemini-robotics-er-1.5-preview',
         contents: `Analyze these overcompensation inventory scores: ${JSON.stringify(significantPatterns)}. Provide an explanation and 2-3 reflection points for each significant pattern.`,
         config: {
             systemInstruction: `You are an assistant trained in Schema Therapy concepts, focusing on overcompensatory coping styles. Your role is to provide supportive feedback on a user's inventory results. You are not a therapist. For each of the top 3 patterns provided, provide a brief, gentle explanation of the pattern and what underlying schema it might be defending against. Then, provide 2-3 concise, actionable reflection points. Always include a disclaimer that this is not a diagnosis.`,
@@ -206,15 +206,18 @@ Key Guidelines:
 - When relevant, explain how different schemas or modes might interact
 - Always include a brief reminder that this is educational, not diagnostic
 
-The user has completed psychological assessments and is asking questions about their results. Here are their results:
+Answer their question thoughtfully, drawing on their specific results when relevant.`;
+
+    // Combine results context with user question
+    const fullPrompt = `Here are the user's psychological assessment results:
 
 ${resultsContext}
 
-Answer their question thoughtfully, drawing on their specific results when relevant.`;
+User's question: ${userQuestion}`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: userQuestion,
+        model: 'models/gemini-robotics-er-1.5-preview',
+        contents: fullPrompt,
         config: {
             systemInstruction,
         },
