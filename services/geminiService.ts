@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { SchemaScore, YPICategoryScores, GeminiFeedback, GeminiParentingFeedback, SchemaModeScore, GeminiSMIFeedback, OIScore, GeminiOIFeedback } from '../types';
+import { SchemaScore, YPICategoryScores, GeminiFeedback, GeminiParentingFeedback, SchemaModeScore, GeminiSMIFeedback, OIScore, GeminiOIFeedback, TestResult, TestType } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
@@ -138,4 +138,87 @@ export const getOIFeedback = async (scores: OIScore[]): Promise<GeminiOIFeedback
     });
 
     return safeParseJson(response.text ?? '', null);
+};
+
+export const getChatbotResponse = async (
+    userQuestion: string,
+    currentResult: TestResult,
+    allResults: Partial<Record<TestType, TestResult>>
+): Promise<string> => {
+    // Build context from test results
+    let resultsContext = '';
+
+    // Add current test results
+    if (currentResult.type === 'YSQ') {
+        const topSchemas = currentResult.scores
+            .filter(s => s.score >= 4)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5);
+        resultsContext += `Young Schema Questionnaire (YSQ) Results:\n`;
+        resultsContext += `Total Score: ${currentResult.totalScore}\n`;
+        resultsContext += `Top Schemas:\n${topSchemas.map(s => `  - ${s.schema}: ${s.score.toFixed(1)}/6`).join('\n')}\n\n`;
+    } else if (currentResult.type === 'SMI') {
+        const topModes = currentResult.scores
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 5);
+        resultsContext += `Schema Mode Inventory (SMI) Results:\n`;
+        resultsContext += `Top Modes:\n${topModes.map(m => `  - ${m.mode}: ${m.score.toFixed(1)}/6`).join('\n')}\n\n`;
+    } else if (currentResult.type === 'OI') {
+        const topPatterns = currentResult.scores
+            .filter(s => s.score >= 4)
+            .sort((a, b) => b.score - a.score);
+        resultsContext += `Overcompensation Inventory (OI) Results:\n`;
+        resultsContext += `Top Patterns:\n${topPatterns.map(p => `  - ${p.category}: ${p.score.toFixed(1)}/6`).join('\n')}\n\n`;
+    } else if (currentResult.type === 'YPI') {
+        resultsContext += `Young Parenting Inventory (YPI) Results:\n`;
+        resultsContext += `Patterns identified in caregiver relationships.\n\n`;
+    }
+
+    // Add other completed tests to context
+    Object.entries(allResults).forEach(([testType, result]) => {
+        if (result && result.type !== currentResult.type) {
+            if (result.type === 'YSQ') {
+                const topSchemas = result.scores.filter(s => s.score >= 4).slice(0, 3);
+                resultsContext += `Also completed YSQ - Top schemas: ${topSchemas.map(s => s.schema).join(', ')}\n`;
+            } else if (result.type === 'SMI') {
+                const topModes = result.scores.sort((a, b) => b.score - a.score).slice(0, 3);
+                resultsContext += `Also completed SMI - Top modes: ${topModes.map(m => m.mode).join(', ')}\n`;
+            } else if (result.type === 'OI') {
+                const topPatterns = result.scores.filter(s => s.score >= 4);
+                resultsContext += `Also completed OI - Top patterns: ${topPatterns.map(p => p.category).join(', ')}\n`;
+            } else if (result.type === 'YPI') {
+                resultsContext += `Also completed YPI - Parenting patterns inventory\n`;
+            }
+        }
+    });
+
+    const systemInstruction = `You are a knowledgeable, compassionate assistant trained in Schema Therapy principles. Your role is to answer questions about psychological assessment results in a supportive, educational manner.
+
+Key Guidelines:
+- You are NOT a therapist and cannot provide therapy or clinical diagnosis
+- Provide psychoeducational information about schemas, modes, and coping patterns
+- Be warm, supportive, and non-judgmental
+- Explain concepts in simple, accessible language
+- When discussing difficult topics, be gentle and validating
+- Suggest self-reflection questions rather than definitive answers
+- If asked about treatment, recommend seeking a qualified Schema Therapy practitioner
+- Connect schemas to everyday life experiences and patterns
+- When relevant, explain how different schemas or modes might interact
+- Always include a brief reminder that this is educational, not diagnostic
+
+The user has completed psychological assessments and is asking questions about their results. Here are their results:
+
+${resultsContext}
+
+Answer their question thoughtfully, drawing on their specific results when relevant.`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: userQuestion,
+        config: {
+            systemInstruction,
+        },
+    });
+
+    return response.text ?? 'I apologize, but I was unable to generate a response. Please try rephrasing your question.';
 };

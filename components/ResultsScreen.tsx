@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOMServer from 'react-dom/server';
-import { TestResult, YSCTestResult, YPITestResult, OITestResult, SMITestResult, Schema, Question, TestType, AllFeedback, GeminiFeedback, GeminiSMIFeedback, GeminiOIFeedback, GeminiParentingFeedback } from '../types';
+import { TestResult, YSCTestResult, YPITestResult, OITestResult, SMITestResult, Schema, Question, TestType, AllFeedback, GeminiFeedback, GeminiSMIFeedback, GeminiOIFeedback, GeminiParentingFeedback, ChatMessage } from '../types';
 import { SCHEMA_DEFINITIONS, SMI_MODE_DETAILS, OI_CATEGORY_DEFINITIONS, YPI_CATEGORY_DEFINITIONS, YPI_QUESTION_TO_CATEGORY_MAP, TESTS } from '../constants';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
 import { FullReport } from './FullReport';
+import { getChatbotResponse } from '../services/geminiService';
 
 
 interface ResultsScreenProps {
@@ -282,8 +283,11 @@ const GeminiFeedbackDisplay = ({ feedback }: { feedback: AllFeedback }) => {
 };
 
 const ResultsScreen: React.FC<ResultsScreenProps> = ({ currentResult, allResults, onReset, caregiverNames, userName }) => {
-  
+
   const allTestsCompleted = Object.keys(allResults).length === TESTS.length;
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [isLoadingChat, setIsLoadingChat] = useState(false);
 
   const handleDownloadReport = () => {
     const reportString = ReactDOMServer.renderToStaticMarkup(
@@ -302,6 +306,36 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ currentResult, allResults
     URL.revokeObjectURL(url);
   };
 
+  const handleSendMessage = async () => {
+    if (!userInput.trim() || isLoadingChat) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: userInput.trim()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setUserInput('');
+    setIsLoadingChat(true);
+
+    try {
+      const response = await getChatbotResponse(userInput.trim(), currentResult, allResults);
+      const botMessage: ChatMessage = {
+        role: 'assistant',
+        content: response
+      };
+      setChatMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoadingChat(false);
+    }
+  };
+
   const renderResults = () => {
       switch(currentResult.type) {
           case 'YSQ': return <YSQResultsDisplay results={currentResult} />;
@@ -315,6 +349,72 @@ const ResultsScreen: React.FC<ResultsScreenProps> = ({ currentResult, allResults
   return (
     <div className="space-y-8">
       {renderResults()}
+
+      {/* Psychoeducational Chatbot */}
+      <Card>
+        <h2 className="text-2xl font-bold text-white mb-4">Ask Questions About Your Results</h2>
+        <p className="text-sm text-[var(--text-secondary)] mb-6">
+          Have questions about your schemas, modes, or results? Ask me anything!
+        </p>
+
+        {/* Chat Messages */}
+        <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+          {chatMessages.length === 0 ? (
+            <div className="text-center py-8 text-[var(--text-secondary)]">
+              <p className="text-sm">Ask questions like:</p>
+              <ul className="mt-3 space-y-2 text-sm">
+                <li>"Why do I have high Abandonment?"</li>
+                <li>"How do I work on Emotional Inhibition?"</li>
+                <li>"What causes Punitive Parent mode?"</li>
+                <li>"How are my schemas connected?"</li>
+              </ul>
+            </div>
+          ) : (
+            chatMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`p-4 rounded-lg ${
+                  msg.role === 'user'
+                    ? 'bg-[var(--primary-500)]/20 ml-8 border-l-4 border-[var(--primary-500)]'
+                    : 'bg-gray-800/50 mr-8 border-l-4 border-gray-500'
+                }`}
+              >
+                <p className="text-xs font-semibold mb-2 text-[var(--text-secondary)]">
+                  {msg.role === 'user' ? 'You' : 'Assistant'}
+                </p>
+                <p className="text-sm text-gray-300 whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            ))
+          )}
+          {isLoadingChat && (
+            <div className="p-4 rounded-lg bg-gray-800/50 mr-8 border-l-4 border-gray-500">
+              <p className="text-xs font-semibold mb-2 text-[var(--text-secondary)]">Assistant</p>
+              <p className="text-sm text-gray-400">Thinking...</p>
+            </div>
+          )}
+        </div>
+
+        {/* Chat Input */}
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Ask about your results..."
+            className="flex-1 px-4 py-3 bg-gray-900/50 border border-[var(--border-color)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)] text-sm"
+            disabled={isLoadingChat}
+          />
+          <Button
+            onClick={handleSendMessage}
+            variant="primary"
+            disabled={!userInput.trim() || isLoadingChat}
+          >
+            Send
+          </Button>
+        </div>
+      </Card>
+
       <div className="text-center mt-8 space-x-4">
         {allTestsCompleted && (
             <Button onClick={handleDownloadReport} variant="primary">
