@@ -65,8 +65,8 @@ const App: React.FC = () => {
                 result = { type: 'YSQ', scores, totalScore, feedback };
             } else if (selectedTest.type === 'YPI') {
                 const scores: YPICategoryScores = {
-                    caregiver1: Object.fromEntries(Object.values(YPICategory).map(cat => [cat, []])) as Record<YPICategory, Question[]>,
-                    caregiver2: Object.fromEntries(Object.values(YPICategory).map(cat => [cat, []])) as Record<YPICategory, Question[]>,
+                    caregiver1: Object.fromEntries(Object.values(YPICategory).map(cat => [cat, [] as Question[]])) as Record<YPICategory, Question[]>,
+                    caregiver2: Object.fromEntries(Object.values(YPICategory).map(cat => [cat, [] as Question[]])) as Record<YPICategory, Question[]>,
                 };
                 selectedTest.questions.forEach(q => {
                     if(answers[`${q.id}_c1`] >= 4){

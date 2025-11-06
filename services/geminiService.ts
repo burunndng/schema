@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { SchemaScore, YPICategoryScores, GeminiFeedback, GeminiParentingFeedback, SchemaModeScore, GeminiSMIFeedback, OIScore, GeminiOIFeedback } from './types';
+import { SchemaScore, YPICategoryScores, GeminiFeedback, GeminiParentingFeedback, SchemaModeScore, GeminiSMIFeedback, OIScore, GeminiOIFeedback } from '../types';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
@@ -47,7 +47,7 @@ export const getYSQFeedback = async (scores: SchemaScore[]): Promise<GeminiFeedb
         },
     });
 
-    return safeParseJson(response.text, null);
+    return safeParseJson(response.text ?? '', null);
 };
 
 export const getParentingFeedback = async (scores: YPICategoryScores, names: { c1: string, c2: string }): Promise<GeminiParentingFeedback | null> => {
@@ -77,7 +77,7 @@ export const getParentingFeedback = async (scores: YPICategoryScores, names: { c
         }
     });
 
-    return safeParseJson(response.text, null);
+    return safeParseJson(response.text ?? '', null);
 };
 
 export const getSMIFeedback = async (scores: SchemaModeScore[]): Promise<GeminiSMIFeedback | null> => {
@@ -103,7 +103,7 @@ export const getSMIFeedback = async (scores: SchemaModeScore[]): Promise<GeminiS
         }
     });
 
-    return safeParseJson(response.text, null);
+    return safeParseJson(response.text ?? '', null);
 };
 
 export const getOIFeedback = async (scores: OIScore[]): Promise<GeminiOIFeedback | null> => {
@@ -137,5 +137,5 @@ export const getOIFeedback = async (scores: OIScore[]): Promise<GeminiOIFeedback
         },
     });
 
-    return safeParseJson(response.text, null);
+    return safeParseJson(response.text ?? '', null);
 };
