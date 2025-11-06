@@ -206,15 +206,18 @@ Key Guidelines:
 - When relevant, explain how different schemas or modes might interact
 - Always include a brief reminder that this is educational, not diagnostic
 
-The user has completed psychological assessments and is asking questions about their results. Here are their results:
+Answer their question thoughtfully, drawing on their specific results when relevant.`;
+
+    // Combine results context with user question
+    const fullPrompt = `Here are the user's psychological assessment results:
 
 ${resultsContext}
 
-Answer their question thoughtfully, drawing on their specific results when relevant.`;
+User's question: ${userQuestion}`;
 
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: userQuestion,
+        contents: fullPrompt,
         config: {
             systemInstruction,
         },
