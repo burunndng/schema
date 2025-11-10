@@ -3,7 +3,7 @@ import { Card } from './common/Card';
 import { Button } from './common/Button';
 
 interface AboutPageProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'tests') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'tests' | 'pricing' | 'testimonials' | 'forum' | 'auraos') => void;
 }
 
 // Placeholder image component

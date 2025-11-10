@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button } from './common/Button';
 import { Card } from './common/Card';
+import { BurundangaLogo } from './BurundangaLogo';
 
 interface HomePageProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'tests') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'tests' | 'forum' | 'auraos') => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
@@ -12,9 +13,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       {/* Hero Section */}
       <section className="text-center py-12">
         <div className="flex justify-center mb-6">
-          <svg className="w-16 h-16 text-[var(--primary-500)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-            <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
-          </svg>
+          <BurundangaLogo size="lg" className="text-[var(--primary-500)]" />
         </div>
         <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">
           Welcome to Burundanga
