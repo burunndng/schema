@@ -233,78 +233,103 @@ const App: React.FC = () => {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 border-b border-[var(--border-color)]">
+            <header className="bg-gradient-to-b from-gray-900/95 to-gray-900/85 backdrop-blur-sm sticky top-0 z-10 border-b border-[var(--border-color)] shadow-lg">
                 <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                    <button onClick={handleReset} className="flex items-center gap-3 focus:outline-none hover:opacity-80 transition-opacity">
-                        <svg className="w-8 h-8 text-[var(--primary-500)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
+                    <button onClick={handleReset} className="flex items-center gap-3 focus:outline-none hover:opacity-80 transition-opacity group">
+                        <svg className="w-9 h-9 text-[var(--primary-500)] group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            {/* Brain lobes */}
+                            <circle cx="15" cy="14" r="6" fill="currentColor" opacity="0.9"/>
+                            <circle cx="33" cy="14" r="6" fill="currentColor" opacity="0.9"/>
+                            <circle cx="10" cy="24" r="5.5" fill="currentColor" opacity="0.85"/>
+                            <circle cx="38" cy="24" r="5.5" fill="currentColor" opacity="0.85"/>
+                            <ellipse cx="24" cy="28" rx="8" ry="7" fill="currentColor" opacity="0.8"/>
+
+                            {/* Brain stem */}
+                            <rect x="22" y="34" width="4" height="6" fill="currentColor" opacity="0.7"/>
+
+                            {/* Happy eyes */}
+                            <circle cx="18" cy="20" r="1.5" fill="white"/>
+                            <circle cx="30" cy="20" r="1.5" fill="white"/>
+
+                            {/* Cute smile */}
+                            <path d="M 20 26 Q 24 28 28 26" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+
+                            {/* Sparkles */}
+                            <g opacity="0.95">
+                                <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+                                <circle cx="40" cy="8" r="1.5" fill="currentColor"/>
+                                <circle cx="6" cy="38" r="1" fill="currentColor"/>
+                                <circle cx="42" cy="36" r="1" fill="currentColor"/>
+                            </g>
                         </svg>
-                        <h1 className="text-2xl font-bold tracking-tight text-white">Burundanga</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-white group-hover:text-[var(--primary-400)] transition-colors">Burundanga</h1>
                     </button>
 
-                    <nav className="flex items-center gap-6">
+                    <nav className="flex items-center gap-8">
                         <button
                             onClick={() => handleNavigate('home')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'home' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'home' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Home
                         </button>
                         <button
                             onClick={() => handleNavigate('about')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'about' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'about' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             About
                         </button>
                         <button
                             onClick={() => handleNavigate('services')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'services' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'services' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Services
                         </button>
                         <button
                             onClick={() => handleNavigate('pricing')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'pricing' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'pricing' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Pricing
                         </button>
                         <button
                             onClick={() => handleNavigate('testimonials')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'testimonials' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'testimonials' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Reviews
                         </button>
                         <button
                             onClick={() => handleNavigate('forum')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'forum' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'forum' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Forum
                         </button>
                         <button
                             onClick={() => handleNavigate('auraos')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'auraos' ? 'text-[var(--accent-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'auraos' ? 'text-[var(--accent-500)] border-[var(--accent-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             ✨ Aura OS
                         </button>
                         <button
                             onClick={() => handleNavigate('tests')}
-                            className={`text-sm font-medium transition-colors ${currentPage === 'tests' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'tests' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Assessments
                         </button>
 
                         {/* Auth buttons */}
-                        <div className="border-l border-gray-700 pl-6">
+                        <div className="border-l border-gray-700 pl-8">
                             {currentUser ? (
-                                <div className="flex items-center gap-3">
-                                    <img
-                                        src={currentUser.avatar}
-                                        alt={currentUser.username}
-                                        className="w-6 h-6 rounded-full object-cover"
-                                    />
-                                    <span className="text-sm text-white">{currentUser.username}</span>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <img
+                                            src={currentUser.avatar}
+                                            alt={currentUser.username}
+                                            className="w-7 h-7 rounded-full object-cover ring-2 ring-[var(--primary-500)]/50"
+                                        />
+                                        <span className="text-sm font-medium text-white">{currentUser.username}</span>
+                                    </div>
                                     <button
                                         onClick={handleLogout}
-                                        className="text-sm text-[var(--text-secondary)] hover:text-white transition-colors"
+                                        className="text-sm text-[var(--text-secondary)] hover:text-[var(--primary-400)] transition-colors font-medium"
                                     >
                                         Logout
                                     </button>
@@ -313,13 +338,13 @@ const App: React.FC = () => {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => setAuthPage('login')}
-                                        className="text-sm text-[var(--text-secondary)] hover:text-white transition-colors"
+                                        className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors"
                                     >
                                         Login
                                     </button>
                                     <button
                                         onClick={() => setAuthPage('register')}
-                                        className="text-sm bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white px-3 py-1 rounded transition-colors"
+                                        className="text-sm font-medium bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white px-4 py-1.5 rounded-lg transition-all hover:shadow-lg hover:shadow-[var(--primary-500)]/20"
                                     >
                                         Register
                                     </button>
@@ -334,9 +359,10 @@ const App: React.FC = () => {
                     {renderContent()}
                 </div>
             </main>
-            <footer className="bg-gray-900 border-t border-gray-800 mt-auto">
-                <div className="container mx-auto px-6 py-6 text-center text-sm text-[var(--text-secondary)]">
+            <footer className="bg-gradient-to-t from-gray-900/95 to-gray-900/85 border-t border-gray-800 mt-auto shadow-lg">
+                <div className="container mx-auto px-6 py-8 text-center text-sm text-[var(--text-secondary)]">
                     <p>© 2024 Burundanga. All rights reserved. Schema Therapy Assessments.</p>
+                    <p className="mt-2 text-xs text-gray-600">🧠 Powered by intelligent insights | 💭 Where therapy meets technology</p>
                 </div>
             </footer>
 
