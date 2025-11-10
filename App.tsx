@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
 import ServicesPage from './components/ServicesPage';
+import PricingPage from './components/PricingPage';
+import TestimonialsPage from './components/TestimonialsPage';
 import WelcomeScreen from './components/WelcomeScreen';
 import TestScreen from './components/TestScreen';
 import ReviewScreen from './components/ReviewScreen';
@@ -14,7 +16,7 @@ import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPIC
 import { TESTS, YPI_QUESTION_TO_CATEGORY_MAP, SMI_QUESTION_GROUPINGS, OI_QUESTION_GROUPINGS } from './constants';
 import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } from './services/geminiService';
 
-type Page = 'home' | 'about' | 'services' | 'tests';
+type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'tests';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -134,6 +136,10 @@ const App: React.FC = () => {
             return <AboutPage onNavigate={handleNavigate} />;
         } else if (currentPage === 'services') {
             return <ServicesPage onNavigate={handleNavigate} />;
+        } else if (currentPage === 'pricing') {
+            return <PricingPage onNavigate={handleNavigate} />;
+        } else if (currentPage === 'testimonials') {
+            return <TestimonialsPage onNavigate={handleNavigate} />;
         }
 
         // Render assessment pages (when currentPage === 'tests')
@@ -191,6 +197,18 @@ const App: React.FC = () => {
                             className={`text-sm font-medium transition-colors ${currentPage === 'services' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
                         >
                             Services
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('pricing')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'pricing' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            Pricing
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('testimonials')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'testimonials' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            Reviews
                         </button>
                         <button
                             onClick={() => handleNavigate('tests')}
