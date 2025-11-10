@@ -36,7 +36,7 @@ Return ONLY valid JSON with exactly this format:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-2-7b-chat',
+          model: 'deepseek/deepseek-v3.2-exp',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.8,
           max_tokens: 150,
@@ -86,7 +86,7 @@ Return ONLY the reply text, no JSON or formatting.`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'meta-llama/llama-2-7b-chat',
+          model: 'deepseek/deepseek-v3.2-exp',
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.7,
           max_tokens: 100,
