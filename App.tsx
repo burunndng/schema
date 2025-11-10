@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
 import ServicesPage from './components/ServicesPage';
 import PricingPage from './components/PricingPage';
 import TestimonialsPage from './components/TestimonialsPage';
-import ForumPage from './components/ForumPage';
+import ForumPageNew from './components/ForumPageNew';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
 import WelcomeScreen from './components/WelcomeScreen';
 import TestScreen from './components/TestScreen';
 import ReviewScreen from './components/ReviewScreen';
@@ -16,6 +18,8 @@ import { Card } from './components/common/Card';
 import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPICategoryScores, YPICategory, Question, SMITestResult, SchemaMode, OITestResult, OICategory, TestType } from './types';
 import { TESTS, YPI_QUESTION_TO_CATEGORY_MAP, SMI_QUESTION_GROUPINGS, OI_QUESTION_GROUPINGS } from './constants';
 import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } from './services/geminiService';
+import { User } from './types/auth';
+import { authService } from './services/authService';
 
 type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests';
 
@@ -29,6 +33,16 @@ const App: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [caregiverNames, setCaregiverNames] = useState({ c1: 'Mother', c2: 'Father' });
     const [userName, setUserName] = useState('');
+
+    // Authentication state
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [authPage, setAuthPage] = useState<'login' | 'register' | null>(null);
+
+    // Initialize auth state on mount
+    useEffect(() => {
+        const user = authService.getCurrentUser();
+        setCurrentUser(user);
+    }, []);
 
     const handleNavigate = (page: Page) => {
         setCurrentPage(page);
@@ -128,8 +142,47 @@ const App: React.FC = () => {
             setAppState('error');
         }
     };
-    
+
+    // Authentication handlers
+    const handleLoginSuccess = (user: User) => {
+        setCurrentUser(user);
+        setAuthPage(null);
+    };
+
+    const handleRegisterSuccess = (user: User) => {
+        setCurrentUser(user);
+        setAuthPage(null);
+    };
+
+    const handleLogout = () => {
+        authService.logout();
+        setCurrentUser(null);
+    };
+
+    const handleNeedLogin = () => {
+        setAuthPage('login');
+    };
+
     const renderContent = () => {
+        // Render auth pages
+        if (authPage === 'login') {
+            return (
+                <LoginPage
+                    onLoginSuccess={handleLoginSuccess}
+                    onSwitchToRegister={() => setAuthPage('register')}
+                />
+            );
+        }
+
+        if (authPage === 'register') {
+            return (
+                <RegisterPage
+                    onRegisterSuccess={handleRegisterSuccess}
+                    onSwitchToLogin={() => setAuthPage('login')}
+                />
+            );
+        }
+
         // Render company website pages
         if (currentPage === 'home') {
             return <HomePage onNavigate={handleNavigate} />;
@@ -142,7 +195,7 @@ const App: React.FC = () => {
         } else if (currentPage === 'testimonials') {
             return <TestimonialsPage onNavigate={handleNavigate} />;
         } else if (currentPage === 'forum') {
-            return <ForumPage onNavigate={handleNavigate} />;
+            return <ForumPageNew onNavigate={handleNavigate} currentUser={currentUser} onNeedLogin={handleNeedLogin} />;
         }
 
         // Render assessment pages (when currentPage === 'tests')
@@ -225,6 +278,41 @@ const App: React.FC = () => {
                         >
                             Assessments
                         </button>
+
+                        {/* Auth buttons */}
+                        <div className="border-l border-gray-700 pl-6">
+                            {currentUser ? (
+                                <div className="flex items-center gap-3">
+                                    <img
+                                        src={currentUser.avatar}
+                                        alt={currentUser.username}
+                                        className="w-6 h-6 rounded-full object-cover"
+                                    />
+                                    <span className="text-sm text-white">{currentUser.username}</span>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="text-sm text-[var(--text-secondary)] hover:text-white transition-colors"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setAuthPage('login')}
+                                        className="text-sm text-[var(--text-secondary)] hover:text-white transition-colors"
+                                    >
+                                        Login
+                                    </button>
+                                    <button
+                                        onClick={() => setAuthPage('register')}
+                                        className="text-sm bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white px-3 py-1 rounded transition-colors"
+                                    >
+                                        Register
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </nav>
                 </div>
             </header>
