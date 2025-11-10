@@ -6,7 +6,7 @@ import { aiService } from '../services/aiService';
 import { Post, User } from '../types/auth';
 
 interface ForumPageProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests' | 'auraos') => void;
   currentUser: User | null;
   onNeedLogin: () => void;
 }

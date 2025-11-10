@@ -5,6 +5,7 @@ import ServicesPage from './components/ServicesPage';
 import PricingPage from './components/PricingPage';
 import TestimonialsPage from './components/TestimonialsPage';
 import ForumPageNew from './components/ForumPageNew';
+import { AuraOSPage } from './components/AuraOSPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import AIKeyModal from './components/AIKeyModal';
@@ -22,7 +23,7 @@ import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } f
 import { User } from './types/auth';
 import { authService } from './services/authService';
 
-type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests';
+type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests' | 'auraos';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -200,6 +201,8 @@ const App: React.FC = () => {
             return <TestimonialsPage onNavigate={handleNavigate} />;
         } else if (currentPage === 'forum') {
             return <ForumPageNew onNavigate={handleNavigate} currentUser={currentUser} onNeedLogin={handleNeedLogin} />;
+        } else if (currentPage === 'auraos') {
+            return <AuraOSPage onNavigate={handleNavigate} />;
         }
 
         // Render assessment pages (when currentPage === 'tests')
@@ -275,6 +278,12 @@ const App: React.FC = () => {
                             className={`text-sm font-medium transition-colors ${currentPage === 'forum' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
                         >
                             Forum
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('auraos')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'auraos' ? 'text-[var(--accent-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            ✨ Aura OS
                         </button>
                         <button
                             onClick={() => handleNavigate('tests')}
