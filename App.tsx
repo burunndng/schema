@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import HomePage from './components/HomePage';
+import AboutPage from './components/AboutPage';
+import ServicesPage from './components/ServicesPage';
 import WelcomeScreen from './components/WelcomeScreen';
 import TestScreen from './components/TestScreen';
 import ReviewScreen from './components/ReviewScreen';
@@ -11,7 +14,10 @@ import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPIC
 import { TESTS, YPI_QUESTION_TO_CATEGORY_MAP, SMI_QUESTION_GROUPINGS, OI_QUESTION_GROUPINGS } from './constants';
 import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } from './services/geminiService';
 
+type Page = 'home' | 'about' | 'services' | 'tests';
+
 const App: React.FC = () => {
+    const [currentPage, setCurrentPage] = useState<Page>('home');
     const [appState, setAppState] = useState<AppState>('welcome');
     const [selectedTest, setSelectedTest] = useState<Test | null>(null);
     const [answers, setAnswers] = useState<Answers>({});
@@ -20,6 +26,16 @@ const App: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [caregiverNames, setCaregiverNames] = useState({ c1: 'Mother', c2: 'Father' });
     const [userName, setUserName] = useState('');
+
+    const handleNavigate = (page: Page) => {
+        setCurrentPage(page);
+        if (page === 'tests') {
+            setAppState('welcome');
+            setSelectedTest(null);
+            setAnswers({});
+            setCurrentTestResult(null);
+        }
+    };
 
     const handleStartTest = (testId: number) => {
         const testToStart = TESTS.find(t => t.id === testId);
@@ -39,6 +55,7 @@ const App: React.FC = () => {
     const handleNext = () => setAppState('review');
     const handleEdit = () => setAppState('testing');
     const handleReset = () => {
+        setCurrentPage('home');
         setAppState('welcome');
         setSelectedTest(null);
         setAnswers({});
@@ -110,6 +127,16 @@ const App: React.FC = () => {
     };
     
     const renderContent = () => {
+        // Render company website pages
+        if (currentPage === 'home') {
+            return <HomePage onNavigate={handleNavigate} />;
+        } else if (currentPage === 'about') {
+            return <AboutPage onNavigate={handleNavigate} />;
+        } else if (currentPage === 'services') {
+            return <ServicesPage onNavigate={handleNavigate} />;
+        }
+
+        // Render assessment pages (when currentPage === 'tests')
         switch (appState) {
             case 'testing':
                 return selectedTest && <TestScreen test={selectedTest} answers={answers} onAnswer={handleAnswer} onNext={handleNext} caregiverNames={caregiverNames} onCaregiverNamesChange={setCaregiverNames} />;
@@ -139,12 +166,39 @@ const App: React.FC = () => {
         <div className="flex flex-col min-h-screen">
             <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 border-b border-[var(--border-color)]">
                 <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                    <button onClick={handleReset} className="flex items-center gap-3 focus:outline-none">
+                    <button onClick={handleReset} className="flex items-center gap-3 focus:outline-none hover:opacity-80 transition-opacity">
                         <svg className="w-8 h-8 text-[var(--primary-500)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                             <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
                         </svg>
-                        <h1 className="text-2xl font-bold tracking-tight text-white">Mindful Path</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-white">Burundanga</h1>
                     </button>
+
+                    <nav className="flex items-center gap-6">
+                        <button
+                            onClick={() => handleNavigate('home')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'home' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            Home
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('about')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'about' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            About
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('services')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'services' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            Services
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('tests')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'tests' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            Assessments
+                        </button>
+                    </nav>
                 </div>
             </header>
             <main className="flex-grow">
@@ -154,7 +208,7 @@ const App: React.FC = () => {
             </main>
             <footer className="bg-gray-900 border-t border-gray-800 mt-auto">
                 <div className="container mx-auto px-6 py-6 text-center text-sm text-[var(--text-secondary)]">
-                    <p>© 2024 Mindful Path. All rights reserved.</p>
+                    <p>© 2024 Burundanga. All rights reserved. Schema Therapy Assessments.</p>
                 </div>
             </footer>
 

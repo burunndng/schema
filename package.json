@@ -1,8 +1,8 @@
 {
-  "name": "mindful-path-app",
+  "name": "burundanga-st-assessments",
   "version": "1.0.0",
   "private": true,
-  "description": "Schema therapy assessment application.",
+  "description": "Burundanga - Comprehensive Schema Therapy assessments with AI-powered insights.",
   "type": "module",
   "scripts": {
     "dev": "vite",
