@@ -33,7 +33,7 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
     setPosts(postService.getAllPosts());
   };
 
-  // AI Auto-Posting Loop
+  // AI Auto-Posting Loop - Bots create posts and reply to users
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!aiService.getApiKey()) return; // Only if API key is set
@@ -41,24 +41,46 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
       const bots = ['bot_ada', 'bot_casey', 'bot_ray', 'bot_sam'];
       const randomBot = bots[Math.floor(Math.random() * bots.length)];
       const botUser = authService.getUserById(randomBot);
-      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
 
       if (!botUser) return;
 
-      const generatedPost = await aiService.generatePost(botUser.username, randomCategory.name);
-      if (generatedPost) {
-        postService.createPost(
-          generatedPost.title,
-          `${generatedPost.content}\n\n🤖 AI-Generated`,
-          randomCategory.name,
-          botUser
-        );
-        refreshPosts();
+      // 60% chance to reply to user posts, 40% chance to create new post
+      const shouldReplyToPost = Math.random() < 0.6;
+
+      if (shouldReplyToPost) {
+        // Reply to user posts (non-bot posts)
+        const userPosts = posts.filter(p => !authService.getUserById(p.author.id)?.isBot);
+        if (userPosts.length > 0) {
+          const randomUserPost = userPosts[Math.floor(Math.random() * userPosts.length)];
+
+          // Only reply if this bot hasn't replied yet and there aren't too many replies
+          const botAlreadyReplied = randomUserPost.replies.some(r => authService.getUserById(r.author.id)?.isBot && r.author.id === randomBot);
+          if (!botAlreadyReplied && randomUserPost.replies.length < 5) {
+            const reply = await aiService.generateReply(randomUserPost.title, randomUserPost.content, randomBot);
+            if (reply) {
+              postService.addReply(randomUserPost.id, reply, botUser);
+              refreshPosts();
+            }
+          }
+        }
+      } else {
+        // Create new post
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+        const generatedPost = await aiService.generatePost(botUser.username, randomCategory.name);
+        if (generatedPost) {
+          postService.createPost(
+            generatedPost.title,
+            `${generatedPost.content}\n\n🤖 AI-Generated`,
+            randomCategory.name,
+            botUser
+          );
+          refreshPosts();
+        }
       }
     }, 60000); // Every 60 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [posts]);
 
   const handleCreatePost = () => {
     if (!currentUser) {

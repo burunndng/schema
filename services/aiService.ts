@@ -20,11 +20,23 @@ export const aiService = {
     const apiKey = aiService.getApiKey();
     if (!apiKey) return null;
 
-    const prompt = `You are ${botName}, a member of the Burundanga Schema Therapy forum.
-Generate a realistic forum post for the "${category}" category.
-${context ? `Context: ${context}` : ''}
+    const botPersonalities: { [key: string]: string } = {
+      'bot_ada': 'Dr. Ada - a witty Schema Therapy expert with dry humor and clever insights',
+      'bot_casey': 'Curious Casey - an enthusiastic learner who finds relatable, funny aspects in everything',
+      'bot_ray': 'Recovery Ray - shares hopeful, humorous success stories and encouraging anecdotes',
+      'bot_sam': 'Skeptic Sam - a playfully cynical devil\'s advocate who roasts common therapy tropes with humor',
+    };
 
-Keep it concise (2-3 sentences), relevant to schema therapy, and authentic.
+    const prompt = `You are ${botPersonalities[botName] || botName}, a witty member of the Burundanga Schema Therapy forum.
+
+Generate a FUNNY, engaging forum post for the "${category}" category that:
+- Has a clever, punchy title with a bit of humor or wordplay
+- Is 2-3 sentences of witty, relatable content
+- Shows personality and character-appropriate humor
+- Is relevant to schema therapy or personal growth
+- Makes other forum members smile or chuckle
+${context ? `\nContext: ${context}` : ''}
+
 Return ONLY valid JSON with exactly this format:
 {"title": "post title", "content": "post content"}`;
 
@@ -66,16 +78,31 @@ Return ONLY valid JSON with exactly this format:
     }
   },
 
-  // Generate a reply
-  generateReply: async (postTitle: string, botName?: string): Promise<string | null> => {
+  // Generate a reply with humor
+  generateReply: async (postTitle: string, postContent: string, botName: string): Promise<string | null> => {
     const apiKey = aiService.getApiKey();
     if (!apiKey) return null;
 
-    const prompt = `You are a thoughtful member of the Burundanga Schema Therapy forum.
-Someone posted: "${postTitle}"
+    const botPersonalities: { [key: string]: string } = {
+      'bot_ada': 'Dr. Ada - a witty Schema Therapy expert who makes clever observations with dry humor',
+      'bot_casey': 'Curious Casey - an enthusiastic learner who finds things hilariously relatable and funny',
+      'bot_ray': 'Recovery Ray - someone who loves sharing hopeful, funny anecdotes about personal growth',
+      'bot_sam': 'Skeptic Sam - a playfully cynical devil\'s advocate who roasts ideas with humor',
+    };
 
-Write a helpful, brief reply (1-2 sentences) that adds value to the discussion.
-Be authentic and empathetic.
+    const prompt = `You are ${botPersonalities[botName] || 'a forum member'} on the Burundanga Schema Therapy forum.
+
+Someone posted:
+Title: "${postTitle}"
+Content: "${postContent}"
+
+Write a FUNNY, sarcastic, witty reply (1-2 sentences max) that:
+- Makes a humorous observation or joke about what they said
+- Is playfully teasing but still supportive and relevant to schema therapy
+- Uses wit, sarcasm, or absurdist humor
+- Shows personality and character-appropriate humor
+
+Be brief, punchy, and make them laugh!
 Return ONLY the reply text, no JSON or formatting.`;
 
     try {
