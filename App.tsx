@@ -4,6 +4,7 @@ import AboutPage from './components/AboutPage';
 import ServicesPage from './components/ServicesPage';
 import PricingPage from './components/PricingPage';
 import TestimonialsPage from './components/TestimonialsPage';
+import ForumPage from './components/ForumPage';
 import WelcomeScreen from './components/WelcomeScreen';
 import TestScreen from './components/TestScreen';
 import ReviewScreen from './components/ReviewScreen';
@@ -16,7 +17,7 @@ import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPIC
 import { TESTS, YPI_QUESTION_TO_CATEGORY_MAP, SMI_QUESTION_GROUPINGS, OI_QUESTION_GROUPINGS } from './constants';
 import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } from './services/geminiService';
 
-type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'tests';
+type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -140,6 +141,8 @@ const App: React.FC = () => {
             return <PricingPage onNavigate={handleNavigate} />;
         } else if (currentPage === 'testimonials') {
             return <TestimonialsPage onNavigate={handleNavigate} />;
+        } else if (currentPage === 'forum') {
+            return <ForumPage onNavigate={handleNavigate} />;
         }
 
         // Render assessment pages (when currentPage === 'tests')
@@ -209,6 +212,12 @@ const App: React.FC = () => {
                             className={`text-sm font-medium transition-colors ${currentPage === 'testimonials' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
                         >
                             Reviews
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('forum')}
+                            className={`text-sm font-medium transition-colors ${currentPage === 'forum' ? 'text-[var(--primary-500)]' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                        >
+                            Forum
                         </button>
                         <button
                             onClick={() => handleNavigate('tests')}
