@@ -15,6 +15,7 @@ import ReviewScreen from './components/ReviewScreen';
 import LoadingScreen from './components/LoadingScreen';
 import ResultsScreen from './components/ResultsScreen';
 import { PersistentChatbot } from './components/PersistentChatbot';
+import { BurundangaLogo } from './components/BurundangaLogo';
 import { Button } from './components/common/Button';
 import { Card } from './components/common/Card';
 import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPICategoryScores, YPICategory, Question, SMITestResult, SchemaMode, OITestResult, OICategory, TestType } from './types';
@@ -236,9 +237,7 @@ const App: React.FC = () => {
             <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-10 border-b border-[var(--border-color)]">
                 <div className="container mx-auto px-6 py-4 flex items-center justify-between">
                     <button onClick={handleReset} className="flex items-center gap-3 focus:outline-none hover:opacity-80 transition-opacity">
-                        <svg className="w-8 h-8 text-[var(--primary-500)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M24 4C25.7818 14.2173 33.7827 22.2182 44 24C33.7827 25.7818 25.7818 33.7827 24 44C22.2182 33.7827 14.2173 25.7818 4 24C14.2173 22.2182 22.2182 14.2173 24 4Z" fill="currentColor"></path>
-                        </svg>
+                        <BurundangaLogo size="md" className="text-[var(--primary-500)]" />
                         <h1 className="text-2xl font-bold tracking-tight text-white">Burundanga</h1>
                     </button>
 
