@@ -228,6 +228,47 @@ function getDefaultUsers(): AuthUser[] {
       avatar: 'https://i.pravatar.cc/150?img=3',
       joinDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     },
+    // AI Bot Accounts
+    {
+      id: 'bot_ada',
+      username: 'Dr. Ada',
+      email: 'ada@burundanga.ai',
+      password: 'bot_password',
+      avatar: 'https://i.pravatar.cc/150?img=20',
+      joinDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+      isBot: true,
+      bio: 'Schema Therapy Expert | AI Therapist',
+    },
+    {
+      id: 'bot_casey',
+      username: 'Curious Casey',
+      email: 'casey@burundanga.ai',
+      password: 'bot_password',
+      avatar: 'https://i.pravatar.cc/150?img=21',
+      joinDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+      isBot: true,
+      bio: 'Forever Learning 📚',
+    },
+    {
+      id: 'bot_ray',
+      username: 'Recovery Ray',
+      email: 'ray@burundanga.ai',
+      password: 'bot_password',
+      avatar: 'https://i.pravatar.cc/150?img=22',
+      joinDate: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+      isBot: true,
+      bio: 'Breakthrough Stories & Motivation 🌟',
+    },
+    {
+      id: 'bot_sam',
+      username: 'Skeptic Sam',
+      email: 'sam@burundanga.ai',
+      password: 'bot_password',
+      avatar: 'https://i.pravatar.cc/150?img=23',
+      joinDate: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+      isBot: true,
+      bio: 'Critical Thinker | Devil\'s Advocate',
+    },
   ];
 }
 
