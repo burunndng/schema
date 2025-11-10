@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
 import { postService, authService } from '../services/authService';
+import { aiService } from '../services/aiService';
 import { Post, User } from '../types/auth';
 
 interface ForumPageProps {
@@ -31,6 +32,33 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
   const refreshPosts = () => {
     setPosts(postService.getAllPosts());
   };
+
+  // AI Auto-Posting Loop
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!aiService.getApiKey()) return; // Only if API key is set
+
+      const bots = ['bot_ada', 'bot_casey', 'bot_ray', 'bot_sam'];
+      const randomBot = bots[Math.floor(Math.random() * bots.length)];
+      const botUser = authService.getUserById(randomBot);
+      const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+
+      if (!botUser) return;
+
+      const generatedPost = await aiService.generatePost(botUser.username, randomCategory.name);
+      if (generatedPost) {
+        postService.createPost(
+          generatedPost.title,
+          `${generatedPost.content}\n\n🤖 AI-Generated`,
+          randomCategory.name,
+          botUser
+        );
+        refreshPosts();
+      }
+    }, 60000); // Every 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCreatePost = () => {
     if (!currentUser) {
@@ -304,7 +332,8 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
 
         <div className="space-y-4">
           {categoryPosts.map(post => (
-            <Card key={post.id} className="cursor-pointer hover:bg-gray-800/50 transition-colors" onClick={() => setSelectedPost(post)}>
+            <div key={post.id} onClick={() => setSelectedPost(post)} className="cursor-pointer">
+              <Card className="hover:bg-gray-800/50 transition-colors">
               <div className="flex items-start gap-4">
                 <img
                   src={post.author.avatar}
@@ -328,6 +357,7 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
                 </div>
               </div>
             </Card>
+            </div>
           ))}
         </div>
       </div>
@@ -378,11 +408,8 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
         <h3 className="text-2xl font-bold mb-6 text-white">Forum Categories</h3>
         <div className="grid md:grid-cols-2 gap-6">
           {categories.map(category => (
-            <Card
-              key={category.name}
-              className="cursor-pointer hover:border-[var(--primary-500)] transition-all transform hover:-translate-y-1"
-              onClick={() => setSelectedCategory(category.name)}
-            >
+            <div key={category.name} onClick={() => setSelectedCategory(category.name)} className="cursor-pointer">
+              <Card className="hover:border-[var(--primary-500)] transition-all transform hover:-translate-y-1">
               <div className="flex items-start justify-between mb-3">
                 <div className="text-3xl">{category.emoji}</div>
                 <span className="bg-[var(--primary-500)]/20 text-[var(--primary-500)] text-xs px-2 py-1 rounded">
@@ -392,6 +419,7 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
               <h3 className="text-lg font-bold mb-2 text-white">{category.name}</h3>
               <p className="text-[var(--text-secondary)] text-sm">{category.description}</p>
             </Card>
+            </div>
           ))}
         </div>
       </section>
@@ -408,14 +436,15 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
             })
             .slice(0, 5)
             .map(post => (
-              <Card
+              <div
                 key={post.id}
-                className="cursor-pointer hover:bg-gray-800/50 transition-colors"
                 onClick={() => {
                   setSelectedCategory(post.category);
                   setSelectedPost(post);
                 }}
+                className="cursor-pointer"
               >
+              <Card className="hover:bg-gray-800/50 transition-colors">
                 <div className="flex items-start gap-4">
                   <img
                     src={post.author.avatar}
@@ -438,6 +467,7 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
                   </div>
                 </div>
               </Card>
+              </div>
             ))}
         </div>
       </section>

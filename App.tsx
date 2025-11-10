@@ -7,6 +7,7 @@ import TestimonialsPage from './components/TestimonialsPage';
 import ForumPageNew from './components/ForumPageNew';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
+import AIKeyModal from './components/AIKeyModal';
 import WelcomeScreen from './components/WelcomeScreen';
 import TestScreen from './components/TestScreen';
 import ReviewScreen from './components/ReviewScreen';
@@ -37,11 +38,14 @@ const App: React.FC = () => {
     // Authentication state
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [authPage, setAuthPage] = useState<'login' | 'register' | null>(null);
+    const [showAIKeyModal, setShowAIKeyModal] = useState(false);
 
     // Initialize auth state on mount
     useEffect(() => {
         const user = authService.getCurrentUser();
         setCurrentUser(user);
+        // Show AI key modal on first visit to forum
+        setShowAIKeyModal(true);
     }, []);
 
     const handleNavigate = (page: Page) => {
@@ -329,6 +333,9 @@ const App: React.FC = () => {
 
             {/* Persistent Chatbot - Always accessible */}
             <PersistentChatbot allResults={allTestResults} currentTest={selectedTest} answers={answers} />
+
+            {/* AI Key Modal */}
+            {showAIKeyModal && <AIKeyModal onClose={() => setShowAIKeyModal(false)} />}
         </div>
     );
 };

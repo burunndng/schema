@@ -5,6 +5,7 @@ export interface User {
   avatar: string;
   joinDate: string;
   bio?: string;
+  isBot?: boolean;
 }
 
 export interface AuthUser extends User {
