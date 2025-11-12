@@ -3,7 +3,7 @@ import { Card } from './common/Card';
 import { Button } from './common/Button';
 
 interface PricingPageProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'tests' | 'pricing' | 'testimonials' | 'forum' | 'auraos') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'tests' | 'pricing' | 'testimonials' | 'forum' | 'discussions' | 'auraos') => void;
 }
 
 const PricingPage: React.FC<PricingPageProps> = ({ onNavigate }) => {
