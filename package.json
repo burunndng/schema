@@ -9,6 +9,7 @@
     "dev:server": "ts-node server.ts",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "db:setup": "ts-node setup-db.ts",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio"
@@ -16,9 +17,11 @@
   "dependencies": {
     "@google/genai": "^1.29.0",
     "@prisma/client": "^6.19.0",
+    "@prisma/extension-accelerate": "^2.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "pg": "^8.16.3",
     "prisma": "^6.19.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
