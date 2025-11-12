@@ -3,7 +3,7 @@ import { Card } from './common/Card';
 import { Button } from './common/Button';
 
 interface AuraOSPageProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests' | 'auraos') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'discussions' | 'tests' | 'auraos') => void;
 }
 
 export const AuraOSPage: React.FC<AuraOSPageProps> = ({ onNavigate }) => {

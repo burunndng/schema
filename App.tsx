@@ -5,6 +5,7 @@ import ServicesPage from './components/ServicesPage';
 import PricingPage from './components/PricingPage';
 import TestimonialsPage from './components/TestimonialsPage';
 import ForumPageNew from './components/ForumPageNew';
+import GitHubDiscussionsPage from './components/GitHubDiscussionsPage';
 import { AuraOSPage } from './components/AuraOSPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
@@ -24,7 +25,7 @@ import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } f
 import { User } from './types/auth';
 import { authService } from './services/authService';
 
-type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'tests' | 'auraos';
+type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'discussions' | 'tests' | 'auraos';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -202,6 +203,8 @@ const App: React.FC = () => {
             return <TestimonialsPage onNavigate={handleNavigate} />;
         } else if (currentPage === 'forum') {
             return <ForumPageNew onNavigate={handleNavigate} currentUser={currentUser} onNeedLogin={handleNeedLogin} />;
+        } else if (currentPage === 'discussions') {
+            return <GitHubDiscussionsPage onNavigate={handleNavigate} currentUser={currentUser} />;
         } else if (currentPage === 'auraos') {
             return <AuraOSPage onNavigate={handleNavigate} />;
         }
@@ -302,6 +305,12 @@ const App: React.FC = () => {
                             className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'forum' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
                         >
                             Forum
+                        </button>
+                        <button
+                            onClick={() => handleNavigate('discussions')}
+                            className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'discussions' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
+                        >
+                            💬 Discussions
                         </button>
                         <button
                             onClick={() => handleNavigate('auraos')}

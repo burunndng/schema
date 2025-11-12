@@ -4,7 +4,7 @@ import { Card } from './common/Card';
 import { BurundangaLogo } from './BurundangaLogo';
 
 interface HomePageProps {
-  onNavigate: (page: 'home' | 'about' | 'services' | 'tests' | 'forum' | 'auraos') => void;
+  onNavigate: (page: 'home' | 'about' | 'services' | 'tests' | 'forum' | 'discussions' | 'pricing' | 'testimonials' | 'auraos') => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
