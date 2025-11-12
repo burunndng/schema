@@ -15,6 +15,7 @@ import ReviewScreen from './components/ReviewScreen';
 import LoadingScreen from './components/LoadingScreen';
 import ResultsScreen from './components/ResultsScreen';
 import { PersistentChatbot } from './components/PersistentChatbot';
+import { BurundangaLogo } from './components/BurundangaLogo';
 import { Button } from './components/common/Button';
 import { Card } from './components/common/Card';
 import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPICategoryScores, YPICategory, Question, SMITestResult, SchemaMode, OITestResult, OICategory, TestType } from './types';
