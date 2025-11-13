@@ -58,10 +58,10 @@ export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-6 right-6 w-16 h-16 bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50"
+                    className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50"
                     aria-label="Open chat assistant"
                 >
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                     </svg>
                 </button>
@@ -69,7 +69,7 @@ export const PersistentChatbot: React.FC<PersistentChatbotProps> = ({ allResults
 
             {/* Chat Panel */}
             {isOpen && (
-                <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-gray-900 border border-[var(--border-color)] rounded-lg shadow-2xl flex flex-col z-50">
+                <div className="fixed bottom-0 right-0 top-0 sm:bottom-6 sm:right-6 sm:top-auto w-full sm:w-96 h-screen sm:h-[600px] bg-gray-900 border border-[var(--border-color)] rounded-none sm:rounded-lg shadow-2xl flex flex-col z-50">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)] bg-gray-800/50">
                         <div className="flex items-center gap-2">

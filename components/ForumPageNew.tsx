@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from './common/Card';
 import { Button } from './common/Button';
-import { postService, authService } from '../services/authService';
+import { authService } from '../services/authService';
 import { aiService } from '../services/aiService';
+import { forumDatabaseService } from '../services/forumDatabaseService';
 import { Post, User } from '../types/auth';
 
 interface ForumPageProps {
@@ -18,7 +19,9 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostContent, setNewPostContent] = useState('');
   const [replyContent, setReplyContent] = useState('');
-  const [posts, setPosts] = useState<Post[]>(postService.getAllPosts());
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const categories = [
     { name: 'Schema Therapy 101', description: 'Questions and discussions about understanding schemas', emoji: '🧠', color: 'primary' },
@@ -29,60 +32,40 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
     { name: 'Off-Topic & Fun', description: 'Casual conversations and community building', emoji: '🎉', color: 'accent' },
   ];
 
-  const refreshPosts = () => {
-    setPosts(postService.getAllPosts());
+  // Load posts from database on mount
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const loadPosts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await forumDatabaseService.getAllPosts();
+      setPosts(data || []);
+    } catch (err) {
+      console.error('Error loading posts:', err);
+      setError('Failed to load posts');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // AI Auto-Posting Loop - Bots create posts and reply to users
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (!aiService.getApiKey()) return; // Only if API key is set
+  const refreshPosts = async () => {
+    await loadPosts();
+  };
 
-      const bots = ['bot_ada', 'bot_casey', 'bot_ray', 'bot_sam'];
-      const randomBot = bots[Math.floor(Math.random() * bots.length)];
-      const botUser = authService.getUserById(randomBot);
+  // AI Auto-Posting Loop - Disabled for database version
+  // TODO: Implement bot posting with database service
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     if (!aiService.getApiKey()) return;
+  //     // ... bot logic here
+  //   }, 60000);
+  //   return () => clearInterval(interval);
+  // }, [posts]);
 
-      if (!botUser) return;
-
-      // 60% chance to reply to user posts, 40% chance to create new post
-      const shouldReplyToPost = Math.random() < 0.6;
-
-      if (shouldReplyToPost) {
-        // Reply to user posts (non-bot posts)
-        const userPosts = posts.filter(p => !authService.getUserById(p.author.id)?.isBot);
-        if (userPosts.length > 0) {
-          const randomUserPost = userPosts[Math.floor(Math.random() * userPosts.length)];
-
-          // Only reply if this bot hasn't replied yet and there aren't too many replies
-          const botAlreadyReplied = randomUserPost.replies.some(r => authService.getUserById(r.author.id)?.isBot && r.author.id === randomBot);
-          if (!botAlreadyReplied && randomUserPost.replies.length < 5) {
-            const reply = await aiService.generateReply(randomUserPost.title, randomUserPost.content, randomBot);
-            if (reply) {
-              postService.addReply(randomUserPost.id, reply, botUser);
-              refreshPosts();
-            }
-          }
-        }
-      } else {
-        // Create new post
-        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-        const generatedPost = await aiService.generatePost(botUser.username, randomCategory.name);
-        if (generatedPost) {
-          postService.createPost(
-            generatedPost.title,
-            `${generatedPost.content}\n\n🤖 AI-Generated`,
-            randomCategory.name,
-            botUser
-          );
-          refreshPosts();
-        }
-      }
-    }, 60000); // Every 60 seconds
-
-    return () => clearInterval(interval);
-  }, [posts]);
-
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!currentUser) {
       onNeedLogin();
       return;
@@ -98,14 +81,19 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
       return;
     }
 
-    postService.createPost(newPostTitle, newPostContent, selectedCategory, currentUser);
-    setNewPostTitle('');
-    setNewPostContent('');
-    setShowCreatePost(false);
-    refreshPosts();
+    try {
+      await forumDatabaseService.createPost(newPostTitle, newPostContent, selectedCategory, currentUser);
+      setNewPostTitle('');
+      setNewPostContent('');
+      setShowCreatePost(false);
+      await refreshPosts();
+    } catch (err) {
+      console.error('Error creating post:', err);
+      alert('Failed to create post. Please try again.');
+    }
   };
 
-  const handleAddReply = () => {
+  const handleAddReply = async () => {
     if (!currentUser) {
       onNeedLogin();
       return;
@@ -116,37 +104,53 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
       return;
     }
 
-    const updated = postService.addReply(selectedPost.id, replyContent, currentUser);
-    if (updated) {
-      setSelectedPost(updated);
+    try {
+      await forumDatabaseService.addReply(selectedPost.id, replyContent, currentUser);
       setReplyContent('');
-      refreshPosts();
+      // Reload the post to see the new reply
+      const updated = await forumDatabaseService.getPostById(selectedPost.id);
+      if (updated) {
+        setSelectedPost(updated);
+      }
+      await refreshPosts();
+    } catch (err) {
+      console.error('Error adding reply:', err);
+      alert('Failed to add reply. Please try again.');
     }
   };
 
-  const handleUpvotePost = () => {
+  const handleUpvotePost = async () => {
     if (!selectedPost) return;
-    const updated = postService.upvotePost(selectedPost.id);
-    if (updated) {
-      setSelectedPost(updated);
-      refreshPosts();
+    try {
+      const updated = await forumDatabaseService.upvotePost(selectedPost.id);
+      if (updated) {
+        setSelectedPost(updated);
+        await refreshPosts();
+      }
+    } catch (err) {
+      console.error('Error upvoting post:', err);
     }
   };
 
-  const handleDeletePost = () => {
+  const handleDeletePost = async () => {
     if (!selectedPost || !currentUser) return;
     if (selectedPost.author.id !== currentUser.id) {
       alert('You can only delete your own posts');
       return;
     }
     if (window.confirm('Are you sure you want to delete this post?')) {
-      postService.deletePost(selectedPost.id);
-      setSelectedPost(null);
-      refreshPosts();
+      try {
+        await forumDatabaseService.deletePost(selectedPost.id);
+        setSelectedPost(null);
+        await refreshPosts();
+      } catch (err) {
+        console.error('Error deleting post:', err);
+        alert('Failed to delete post');
+      }
     }
   };
 
-  const handleDeleteReply = (replyId: string) => {
+  const handleDeleteReply = async (replyId: string) => {
     if (!selectedPost || !currentUser) return;
     const reply = selectedPost.replies.find(r => r.id === replyId);
     if (reply && reply.author.id !== currentUser.id) {
@@ -154,16 +158,22 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
       return;
     }
     if (window.confirm('Are you sure you want to delete this reply?')) {
-      const updated = postService.deleteReply(selectedPost.id, replyId);
-      if (updated) {
-        setSelectedPost(updated);
-        refreshPosts();
+      try {
+        await forumDatabaseService.deleteReply(replyId);
+        // Reload the post to see the deleted reply removed
+        const updated = await forumDatabaseService.getPostById(selectedPost.id);
+        if (updated) {
+          setSelectedPost(updated);
+        }
+        await refreshPosts();
+      } catch (err) {
+        console.error('Error deleting reply:', err);
+        alert('Failed to delete reply');
       }
     }
   };
 
   if (selectedPost) {
-    const categoryPosts = selectedCategory ? postService.getPostsByCategory(selectedCategory) : [];
     const currentPostView = posts.find(p => p.id === selectedPost.id) || selectedPost;
 
     return (
@@ -287,11 +297,13 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
   }
 
   if (selectedCategory) {
-    const categoryPosts = postService.getPostsByCategory(selectedCategory).sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    const categoryPosts = posts
+      .filter(p => p.category === selectedCategory)
+      .sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
 
     return (
       <div className="space-y-8">
@@ -399,6 +411,24 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
         )}
       </section>
 
+      {/* Loading State */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--primary-500)]"></div>
+          </div>
+          <p className="text-[var(--text-secondary)] mt-4">Loading forum discussions...</p>
+        </div>
+      ) : error ? (
+        <Card className="bg-red-500/20 border border-red-500/50">
+          <p className="text-red-400 mb-4">{error}</p>
+          <Button onClick={() => refreshPosts()} className="bg-red-600 hover:bg-red-700 text-white">
+            Try Again
+          </Button>
+        </Card>
+      ) : (
+        <>
+
       {/* Stats */}
       <section className="grid md:grid-cols-4 gap-6">
         <Card className="text-center">
@@ -435,7 +465,7 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
               <div className="flex items-start justify-between mb-3">
                 <div className="text-3xl">{category.emoji}</div>
                 <span className="bg-[var(--primary-500)]/20 text-[var(--primary-500)] text-xs px-2 py-1 rounded">
-                  {postService.getPostsByCategory(category.name).length} posts
+                  {posts.filter(p => p.category === category.name).length} posts
                 </span>
               </div>
               <h3 className="text-lg font-bold mb-2 text-white">{category.name}</h3>
@@ -505,6 +535,8 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
           <li>✓ Have fun and support each other</li>
         </ul>
       </section>
+        </>
+      )}
     </div>
   );
 };
