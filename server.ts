@@ -78,7 +78,7 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
         password: hashedPassword,
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
         isBot: false,
-      },
+      } as any,
       select: {
         id: true,
         username: true,
@@ -110,18 +110,10 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing email or password' });
     }
 
-    // Find user by email
+    // Find user by email (using findUnique without select to get all fields including password)
     const user = await prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        avatar: true,
-        password: true,
-        createdAt: true,
-      },
-    });
+    }) as any;
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -262,7 +254,7 @@ app.get('/api/posts/:id', async (req: Request, res: Response) => {
 app.post('/api/posts', verifyToken, async (req: AuthRequest, res: Response) => {
   try {
     const { title, content, category } = req.body;
-    const authorId = req.userId;
+    const authorId = req.userId!; // Non-null assertion since verifyToken guarantees userId
 
     if (!title || !content || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -274,7 +266,7 @@ app.post('/api/posts', verifyToken, async (req: AuthRequest, res: Response) => {
         content,
         category,
         authorId,
-      },
+      } as any,
       include: {
         author: true,
         replies: {
@@ -371,7 +363,7 @@ app.post('/api/posts/:postId/replies', verifyToken, async (req: AuthRequest, res
   try {
     const { postId } = req.params;
     const { content } = req.body;
-    const authorId = req.userId;
+    const authorId = req.userId!; // Non-null assertion since verifyToken guarantees userId
 
     if (!content) {
       return res.status(400).json({ error: 'Missing content' });
@@ -382,7 +374,7 @@ app.post('/api/posts/:postId/replies', verifyToken, async (req: AuthRequest, res
         content,
         postId,
         authorId,
-      },
+      } as any,
       include: {
         author: true,
       },
