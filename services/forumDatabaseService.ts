@@ -6,7 +6,21 @@
 
 import { Post, User } from '../types/auth';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const TOKEN_KEY = 'burundanga_token';
+
+const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(TOKEN_KEY);
+};
+
+const getAuthHeaders = (): HeadersInit => {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+};
 
 export interface DatabasePost extends Post {
   id: string;
@@ -91,7 +105,7 @@ class ForumDatabaseService {
   }
 
   /**
-   * Create a new post
+   * Create a new post (requires authentication)
    */
   async createPost(
     title: string,
@@ -102,16 +116,18 @@ class ForumDatabaseService {
     try {
       const response = await fetch(`${this.apiUrl}/api/posts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           title,
           content,
           category,
-          authorId: author.id,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create post');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create post');
+      }
       return await response.json();
     } catch (error) {
       console.error('Error creating post:', error);
@@ -155,7 +171,7 @@ class ForumDatabaseService {
   }
 
   /**
-   * Add a reply to a post
+   * Add a reply to a post (requires authentication)
    */
   async addReply(
     postId: string,
@@ -165,14 +181,16 @@ class ForumDatabaseService {
     try {
       const response = await fetch(`${this.apiUrl}/api/posts/${postId}/replies`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           content,
-          authorId: author.id,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to add reply');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to add reply');
+      }
       return await response.json();
     } catch (error) {
       console.error('Error adding reply:', error);

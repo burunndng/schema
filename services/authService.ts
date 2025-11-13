@@ -3,56 +3,127 @@ import { User, AuthUser, Post, Reply } from '../types/auth';
 const USERS_KEY = 'burundanga_users';
 const CURRENT_USER_KEY = 'burundanga_current_user';
 const POSTS_KEY = 'burundanga_posts';
+const TOKEN_KEY = 'burundanga_token';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Token Management
+const getToken = (): string | null => localStorage.getItem(TOKEN_KEY);
+const setToken = (token: string): void => localStorage.setItem(TOKEN_KEY, token);
+const removeToken = (): void => localStorage.removeItem(TOKEN_KEY);
+
+const getAuthHeaders = (token?: string): HeadersInit => {
+  const authToken = token || getToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+  };
+};
 
 // User Management
 export const authService = {
-  // Register a new user
-  register: (username: string, email: string, password: string): User | null => {
-    const users = getAllUsers();
+  // Register a new user via API
+  register: async (username: string, email: string, password: string): Promise<User | null> => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ username, email, password }),
+      });
 
-    // Check if user already exists
-    if (users.some(u => u.username === username || u.email === email)) {
+      if (!response.ok) {
+        console.error('Registration failed:', await response.text());
+        return null;
+      }
+
+      const data = await response.json();
+      setToken(data.token);
+
+      // Store user in localStorage for quick access
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(data.user));
+
+      return data.user;
+    } catch (error) {
+      console.error('Error registering user:', error);
       return null;
     }
-
-    const userId = `user_${Date.now()}`;
-    const newUser: AuthUser = {
-      id: userId,
-      username,
-      email,
-      password, // In real app, this would be hashed
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
-      joinDate: new Date().toISOString(),
-    };
-
-    users.push(newUser);
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-
-    const { password: _, ...userWithoutPassword } = newUser;
-    return userWithoutPassword;
   },
 
-  // Login user
-  login: (email: string, password: string): User | null => {
-    const users = getAllUsers();
-    const user = users.find(u => u.email === email && (u as AuthUser).password === password);
+  // Login user via API
+  login: async (email: string, password: string): Promise<User | null> => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!user) return null;
+      if (!response.ok) {
+        console.error('Login failed:', await response.text());
+        return null;
+      }
 
-    const { password: _, ...userWithoutPassword } = user;
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
-    return userWithoutPassword;
+      const data = await response.json();
+      setToken(data.token);
+
+      // Store user in localStorage for quick access
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(data.user));
+
+      return data.user;
+    } catch (error) {
+      console.error('Error logging in user:', error);
+      return null;
+    }
   },
 
   // Logout user
-  logout: () => {
-    localStorage.removeItem(CURRENT_USER_KEY);
+  logout: async () => {
+    try {
+      const token = getToken();
+      if (token) {
+        await fetch(`${API_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: getAuthHeaders(token),
+        });
+      }
+    } catch (error) {
+      console.error('Error logging out:', error);
+    } finally {
+      removeToken();
+      localStorage.removeItem(CURRENT_USER_KEY);
+    }
   },
 
-  // Get current logged-in user
-  getCurrentUser: (): User | null => {
-    const userStr = localStorage.getItem(CURRENT_USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+  // Get current logged-in user from API
+  getCurrentUser: async (): Promise<User | null> => {
+    try {
+      const token = getToken();
+      if (!token) {
+        // Try to get from localStorage as fallback
+        const userStr = localStorage.getItem(CURRENT_USER_KEY);
+        return userStr ? JSON.parse(userStr) : null;
+      }
+
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        method: 'GET',
+        headers: getAuthHeaders(token),
+      });
+
+      if (!response.ok) {
+        removeToken();
+        localStorage.removeItem(CURRENT_USER_KEY);
+        return null;
+      }
+
+      const user = await response.json();
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+      return user;
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      // Fallback to localStorage
+      const userStr = localStorage.getItem(CURRENT_USER_KEY);
+      return userStr ? JSON.parse(userStr) : null;
+    }
   },
 
   // Get all users

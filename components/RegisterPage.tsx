@@ -53,19 +53,27 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess, onSwitch
       return;
     }
 
-    // Attempt registration
-    const user = authService.register(username, email, password);
+    try {
+      // Attempt registration
+      const user = await authService.register(username, email, password);
 
-    if (!user) {
-      setError('Username or email already exists');
+      if (!user) {
+        setError('Username or email already exists');
+        setLoading(false);
+        return;
+      }
+
+      // Auto-login after registration
+      const loggedInUser = await authService.login(email, password);
+      if (loggedInUser) {
+        onRegisterSuccess(loggedInUser);
+      } else {
+        setError('Registration successful, but login failed. Please try logging in.');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Failed to register. Please try again.');
       setLoading(false);
-      return;
-    }
-
-    // Auto-login after registration
-    const loggedInUser = authService.login(email, password);
-    if (loggedInUser) {
-      onRegisterSuccess(loggedInUser);
     }
   };
 

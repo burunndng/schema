@@ -28,22 +28,35 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onSwitchToRegiste
     }
 
     // Attempt login
-    const user = authService.login(email, password);
+    try {
+      const user = await authService.login(email, password);
 
-    if (!user) {
-      setError('Invalid email or password');
+      if (!user) {
+        setError('Invalid email or password');
+        setLoading(false);
+        return;
+      }
+
+      onLoginSuccess(user);
+    } catch (err) {
+      setError('Failed to login. Please try again.');
       setLoading(false);
-      return;
     }
-
-    onLoginSuccess(user);
   };
 
-  const handleDemoLogin = () => {
+  const handleDemoLogin = async () => {
     setLoading(true);
-    const user = authService.login('demo@burundanga.com', 'demo123');
-    if (user) {
-      onLoginSuccess(user);
+    try {
+      const user = await authService.login('demo@burundanga.com', 'demo123');
+      if (user) {
+        onLoginSuccess(user);
+      } else {
+        setError('Demo account not found. Please register first.');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Failed to login. Please try again.');
+      setLoading(false);
     }
   };
 
