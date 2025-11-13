@@ -51,7 +51,17 @@ const App: React.FC = () => {
     // Initialize auth state on mount
     useEffect(() => {
         const initializeAuth = async () => {
-            const user = await authService.getCurrentUser();
+            let user = await authService.getCurrentUser();
+
+            // Auto-login as demo user if no user is logged in
+            if (!user) {
+                try {
+                    user = await authService.login('demo@burundanga.com', 'demo123');
+                } catch (error) {
+                    console.error('Failed to auto-login as demo user:', error);
+                }
+            }
+
             setCurrentUser(user);
             // Show AI key modal only if:
             // 1. No API key is configured, AND
