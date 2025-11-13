@@ -66,11 +66,6 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
   // }, [posts]);
 
   const handleCreatePost = async () => {
-    if (!currentUser) {
-      onNeedLogin();
-      return;
-    }
-
     if (!selectedCategory) {
       alert('Please select a category first');
       return;
@@ -82,7 +77,8 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
     }
 
     try {
-      await forumDatabaseService.createPost(newPostTitle, newPostContent, selectedCategory, currentUser);
+      const user = currentUser || { id: 'anonymous', username: 'Anonymous', email: 'anonymous@demo.local', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anonymous', joinDate: new Date().toISOString() };
+      await forumDatabaseService.createPost(newPostTitle, newPostContent, selectedCategory, user);
       setNewPostTitle('');
       setNewPostContent('');
       setShowCreatePost(false);
@@ -94,18 +90,14 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
   };
 
   const handleAddReply = async () => {
-    if (!currentUser) {
-      onNeedLogin();
-      return;
-    }
-
     if (!selectedPost || !replyContent.trim()) {
       alert('Please write a reply');
       return;
     }
 
     try {
-      await forumDatabaseService.addReply(selectedPost.id, replyContent, currentUser);
+      const user = currentUser || { id: 'anonymous', username: 'Anonymous', email: 'anonymous@demo.local', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anonymous', joinDate: new Date().toISOString() };
+      await forumDatabaseService.addReply(selectedPost.id, replyContent, user);
       setReplyContent('');
       // Reload the post to see the new reply
       const updated = await forumDatabaseService.getPostById(selectedPost.id);
@@ -226,34 +218,21 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
         </Card>
 
         {/* Add Reply */}
-        {currentUser && (
-          <Card className="bg-gray-800/50">
-            <h4 className="text-lg font-bold text-white mb-4">Add Your Reply</h4>
-            <textarea
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="Share your thoughts..."
-              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--primary-500)] mb-4 h-24"
-            />
-            <Button
-              onClick={handleAddReply}
-              className="bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white"
-            >
-              Post Reply
-            </Button>
-          </Card>
-        )}
-
-        {!currentUser && (
-          <Card className="bg-blue-500/20 border border-blue-500/50">
-            <p className="text-blue-400 text-center">
-              <button onClick={onNeedLogin} className="underline hover:no-underline">
-                Login
-              </button>
-              {' '}to reply to this discussion
-            </p>
-          </Card>
-        )}
+        <Card className="bg-gray-800/50">
+          <h4 className="text-lg font-bold text-white mb-4">Add Your Reply</h4>
+          <textarea
+            value={replyContent}
+            onChange={(e) => setReplyContent(e.target.value)}
+            placeholder="Share your thoughts..."
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--primary-500)] mb-4 h-24"
+          />
+          <Button
+            onClick={handleAddReply}
+            className="bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white"
+          >
+            Post Reply {!currentUser && '(as Anonymous)'}
+          </Button>
+        </Card>
 
         {/* Replies */}
         {currentPostView.replies.length > 0 && (
@@ -318,9 +297,10 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
           <p className="text-[var(--text-secondary)]">{categoryPosts.length} discussions</p>
         </div>
 
-        {showCreatePost && currentUser ? (
+        {showCreatePost ? (
           <Card className="bg-gray-800/50 border border-[var(--primary-500)]">
             <h3 className="text-xl font-bold text-white mb-4">Start New Discussion</h3>
+            {!currentUser && <p className="text-sm text-[var(--text-secondary)] mb-4">You are posting as Anonymous</p>}
             <input
               type="text"
               value={newPostTitle}
@@ -351,13 +331,7 @@ const ForumPageNew: React.FC<ForumPageProps> = ({ onNavigate, currentUser, onNee
           </Card>
         ) : (
           <Button
-            onClick={() => {
-              if (!currentUser) {
-                onNeedLogin();
-              } else {
-                setShowCreatePost(true);
-              }
-            }}
+            onClick={() => setShowCreatePost(true)}
             className="bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white"
           >
             + Start New Discussion

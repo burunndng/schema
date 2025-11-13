@@ -39,6 +39,46 @@ const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
   }
 };
 
+// Auto-authenticate with demo account for public forum access
+const autoAuthDemo = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+        req.userId = decoded.userId;
+        return next();
+      } catch (error) {
+        // Token is invalid, continue to create auto-demo
+      }
+    }
+
+    // Get or create anonymous auto-demo user
+    let user = await prisma.user.findFirst({
+      where: { email: 'anonymous@demo.local' },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          username: 'Anonymous',
+          email: 'anonymous@demo.local',
+          password: await bcrypt.hash('auto_demo_password', 10),
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anonymous',
+          isBot: false,
+        } as any,
+      });
+    }
+
+    req.userId = user.id;
+    next();
+  } catch (error) {
+    console.error('Error in autoAuthDemo middleware:', error);
+    res.status(500).json({ error: 'Failed to authenticate' });
+  }
+};
+
 // Health check
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' });
@@ -356,11 +396,11 @@ app.get('/api/posts/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Create post (requires authentication)
-app.post('/api/posts', verifyToken, async (req: AuthRequest, res: Response) => {
+// Create post (public access with auto-demo account)
+app.post('/api/posts', autoAuthDemo, async (req: AuthRequest, res: Response) => {
   try {
     const { title, content, category } = req.body;
-    const authorId = req.userId!; // Non-null assertion since verifyToken guarantees userId
+    const authorId = req.userId!; // autoAuthDemo guarantees userId
 
     if (!title || !content || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -464,12 +504,12 @@ app.post('/api/posts/:id/upvote', async (req: Request, res: Response) => {
 
 // ==================== REPLY ROUTES ====================
 
-// Add reply to post (requires authentication)
-app.post('/api/posts/:postId/replies', verifyToken, async (req: AuthRequest, res: Response) => {
+// Add reply to post (public access with auto-demo account)
+app.post('/api/posts/:postId/replies', autoAuthDemo, async (req: AuthRequest, res: Response) => {
   try {
     const { postId } = req.params;
     const { content } = req.body;
-    const authorId = req.userId!; // Non-null assertion since verifyToken guarantees userId
+    const authorId = req.userId!; // autoAuthDemo guarantees userId
 
     if (!content) {
       return res.status(400).json({ error: 'Missing content' });
