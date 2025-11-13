@@ -25,6 +25,7 @@ import { TESTS, YPI_QUESTION_TO_CATEGORY_MAP, SMI_QUESTION_GROUPINGS, OI_QUESTIO
 import { getYSQFeedback, getParentingFeedback, getSMIFeedback, getOIFeedback } from './services/geminiService';
 import { User } from './types/auth';
 import { authService } from './services/authService';
+import { aiService } from './services/aiService';
 
 type Page = 'home' | 'about' | 'services' | 'pricing' | 'testimonials' | 'forum' | 'discussions' | 'tests' | 'auraos';
 
@@ -52,8 +53,8 @@ const App: React.FC = () => {
         const initializeAuth = async () => {
             const user = await authService.getCurrentUser();
             setCurrentUser(user);
-            // Show AI key modal on first visit to forum
-            setShowAIKeyModal(true);
+            // Show AI key modal only if no API key is configured
+            setShowAIKeyModal(!aiService.hasApiKey());
         };
         initializeAuth();
     }, []);

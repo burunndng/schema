@@ -1,14 +1,26 @@
 const OPENROUTER_API_KEY_KEY = 'burundanga_openrouter_key';
 
+// Get default API key from environment or return null
+const getDefaultApiKey = (): string | null => {
+  return import.meta.env.VITE_OPENROUTER_API_KEY || null;
+};
+
 export const aiService = {
-  // Get stored API key
+  // Get stored API key (checks environment first, then localStorage)
   getApiKey: (): string | null => {
+    const envKey = getDefaultApiKey();
+    if (envKey) return envKey;
     return localStorage.getItem(OPENROUTER_API_KEY_KEY);
   },
 
-  // Set API key
+  // Set API key (stores in localStorage, overrides environment default)
   setApiKey: (key: string) => {
     localStorage.setItem(OPENROUTER_API_KEY_KEY, key);
+  },
+
+  // Check if API key is available (from env or localStorage)
+  hasApiKey: (): boolean => {
+    return aiService.getApiKey() !== null;
   },
 
   // Generate a forum post
