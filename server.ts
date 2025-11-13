@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
@@ -40,12 +40,12 @@ const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
 };
 
 // Health check
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
 // Database seed endpoint (for initialization)
-app.post('/api/seed', async (req: Request, res: Response) => {
+app.post('/api/seed', async (_req: Request, res: Response) => {
   try {
     // Check if users already exist
     const userCount = await prisma.user.count();
@@ -267,7 +267,7 @@ app.get('/api/auth/me', verifyToken, async (req: AuthRequest, res: Response) => 
 });
 
 // Logout (mostly client-side, but endpoint for consistency)
-app.post('/api/auth/logout', verifyToken, (req: AuthRequest, res: Response) => {
+app.post('/api/auth/logout', verifyToken, (_req: AuthRequest, res: Response) => {
   // JWT is stateless, logout is handled on client by removing token
   res.json({ message: 'Logged out successfully' });
 });
@@ -538,7 +538,7 @@ app.post('/api/replies/:id/upvote', async (req: Request, res: Response) => {
 });
 
 // Error handling
-app.use((err: any, req: Request, res: Response) => {
+app.use((err: any, _req: Request, res: Response) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
