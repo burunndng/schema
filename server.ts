@@ -286,7 +286,14 @@ app.post('/api/users/sync', async (req: Request, res: Response) => {
     const user = await prisma.user.upsert({
       where: { id },
       update: { username, email, avatar },
-      create: { id, username, email, avatar, isBot: false },
+      create: {
+        id,
+        username,
+        email,
+        avatar,
+        password: await bcrypt.hash(`synced_${id}`, 10), // Generate a temporary password for synced users
+        isBot: false,
+      } as any,
     });
 
     res.json(user);
