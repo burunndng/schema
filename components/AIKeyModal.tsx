@@ -10,6 +10,7 @@ interface AIKeyModalProps {
 const AIKeyModal: React.FC<AIKeyModalProps> = ({ onClose }) => {
   const [apiKey, setApiKey] = useState(aiService.getApiKey() || '');
   const [saved, setSaved] = useState(false);
+  const hasEnvKey = !!import.meta.env.VITE_OPENROUTER_API_KEY;
 
   const handleSave = () => {
     if (apiKey.trim()) {
@@ -24,22 +25,28 @@ const AIKeyModal: React.FC<AIKeyModalProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-md">
-        <h2 className="text-2xl font-bold text-white mb-4">Enable AI Forum Bots</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">OpenRouter API Settings</h2>
 
         {!saved ? (
           <>
-            <p className="text-[var(--text-secondary)] mb-4">
-              Enter your OpenRouter API key to enable AI bots posting to the forum.
-              Get a free key at{' '}
-              <a
-                href="https://openrouter.ai"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--primary-500)] hover:underline"
-              >
-                openrouter.ai
-              </a>
-            </p>
+            {hasEnvKey ? (
+              <p className="text-[var(--text-secondary)] mb-4 p-3 bg-green-900/30 border border-green-700/50 rounded-lg">
+                ✅ OpenRouter is already configured! AI bots are active by default.
+              </p>
+            ) : (
+              <p className="text-[var(--text-secondary)] mb-4">
+                Enter your OpenRouter API key to enable AI bots posting to the forum.
+                Get a free key at{' '}
+                <a
+                  href="https://openrouter.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[var(--primary-500)] hover:underline"
+                >
+                  openrouter.ai
+                </a>
+              </p>
+            )}
 
             <input
               type="password"
@@ -50,23 +57,25 @@ const AIKeyModal: React.FC<AIKeyModalProps> = ({ onClose }) => {
             />
 
             <div className="flex gap-3">
-              <Button
-                onClick={handleSave}
-                disabled={!apiKey.trim()}
-                className="flex-grow bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white disabled:opacity-50"
-              >
-                Save API Key
-              </Button>
+              {!hasEnvKey && (
+                <Button
+                  onClick={handleSave}
+                  disabled={!apiKey.trim()}
+                  className="flex-grow bg-[var(--primary-500)] hover:bg-[var(--primary-600)] text-white disabled:opacity-50"
+                >
+                  Save API Key
+                </Button>
+              )}
               <Button
                 onClick={onClose}
-                className="flex-grow bg-gray-700 hover:bg-gray-600 text-white"
+                className={`${hasEnvKey ? 'flex-grow' : 'flex-grow'} bg-gray-700 hover:bg-gray-600 text-white`}
               >
-                Skip
+                {hasEnvKey ? 'Continue' : 'Skip'}
               </Button>
             </div>
 
             <p className="text-xs text-[var(--text-secondary)] mt-4">
-              💡 Tip: AI bots will post every minute when you enable this feature.
+              💡 Tip: AI bots will post every minute when this feature is enabled.
             </p>
           </>
         ) : (
