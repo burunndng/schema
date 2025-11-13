@@ -49,10 +49,13 @@ const App: React.FC = () => {
 
     // Initialize auth state on mount
     useEffect(() => {
-        const user = authService.getCurrentUser();
-        setCurrentUser(user);
-        // Show AI key modal on first visit to forum
-        setShowAIKeyModal(true);
+        const initializeAuth = async () => {
+            const user = await authService.getCurrentUser();
+            setCurrentUser(user);
+            // Show AI key modal on first visit to forum
+            setShowAIKeyModal(true);
+        };
+        initializeAuth();
     }, []);
 
     const handleNavigate = (page: Page) => {
@@ -165,8 +168,8 @@ const App: React.FC = () => {
         setAuthPage(null);
     };
 
-    const handleLogout = () => {
-        authService.logout();
+    const handleLogout = async () => {
+        await authService.logout();
         setCurrentUser(null);
     };
 
