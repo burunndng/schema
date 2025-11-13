@@ -23,7 +23,7 @@ async function main() {
       password: demoPassword,
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
       isBot: false,
-    },
+    } as any,
   });
 
   console.log('Created demo user:', demoUser.email);
@@ -65,7 +65,7 @@ async function main() {
         password: botPassword,
         avatar: bot.avatar,
         isBot: true,
-      },
+      } as any,
     });
     bots.push(createdBot);
     console.log('Created bot user:', createdBot.username);

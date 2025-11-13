@@ -65,7 +65,7 @@ app.post('/api/seed', async (req: Request, res: Response) => {
         password: demoPassword,
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
         isBot: false,
-      },
+      } as any,
     });
 
     // Create AI bot users
@@ -101,7 +101,7 @@ app.post('/api/seed', async (req: Request, res: Response) => {
           password: botPassword,
           avatar: bot.avatar,
           isBot: true,
-        },
+        } as any,
       });
       bots.push(createdBot);
     }
