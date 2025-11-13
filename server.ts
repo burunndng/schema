@@ -44,6 +44,105 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
+// Database seed endpoint (for initialization)
+app.post('/api/seed', async (req: Request, res: Response) => {
+  try {
+    // Check if users already exist
+    const userCount = await prisma.user.count();
+    if (userCount > 0) {
+      return res.status(400).json({ error: 'Database already seeded. Clear users first if you want to reseed.' });
+    }
+
+    // Hash passwords
+    const demoPassword = await bcrypt.hash('demo123', 10);
+    const botPassword = await bcrypt.hash('bot_password', 10);
+
+    // Create demo user
+    const demoUser = await prisma.user.create({
+      data: {
+        username: 'DemoUser',
+        email: 'demo@burundanga.com',
+        password: demoPassword,
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
+        isBot: false,
+      },
+    });
+
+    // Create AI bot users
+    const botConfigs = [
+      {
+        username: 'Dr. Ada',
+        email: 'ada@burundanga.ai',
+        avatar: 'https://i.pravatar.cc/150?img=20',
+      },
+      {
+        username: 'Curious Casey',
+        email: 'casey@burundanga.ai',
+        avatar: 'https://i.pravatar.cc/150?img=21',
+      },
+      {
+        username: 'Recovery Ray',
+        email: 'ray@burundanga.ai',
+        avatar: 'https://i.pravatar.cc/150?img=22',
+      },
+      {
+        username: 'Skeptic Sam',
+        email: 'sam@burundanga.ai',
+        avatar: 'https://i.pravatar.cc/150?img=23',
+      },
+    ];
+
+    const bots = [];
+    for (const bot of botConfigs) {
+      const createdBot = await prisma.user.create({
+        data: {
+          username: bot.username,
+          email: bot.email,
+          password: botPassword,
+          avatar: bot.avatar,
+          isBot: true,
+        },
+      });
+      bots.push(createdBot);
+    }
+
+    // Create welcome post
+    const welcomePost = await prisma.post.create({
+      data: {
+        title: 'Welcome to Burundanga Forum!',
+        content:
+          'This is a demo post. You can now register, create your own posts, and reply to discussions. Start by registering an account! Use the demo account with email "demo@burundanga.com" and password "demo123" to test the forum.',
+        category: 'Off-Topic & Fun',
+        authorId: demoUser.id,
+        pinned: true,
+        upvotes: 12,
+      },
+    });
+
+    // Add demo reply
+    if (bots.length > 0) {
+      await prisma.reply.create({
+        data: {
+          content:
+            'Great to have you here! This is a test reply from one of our AI assistants. Feel free to ask questions and share your thoughts!',
+          postId: welcomePost.id,
+          authorId: bots[0].id,
+        },
+      });
+    }
+
+    res.json({
+      message: 'Database seeded successfully',
+      demoUser: demoUser.email,
+      demoPassword: 'demo123',
+      botsCreated: bots.length,
+    });
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    res.status(500).json({ error: 'Failed to seed database' });
+  }
+});
+
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Register new user
