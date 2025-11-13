@@ -53,8 +53,11 @@ const App: React.FC = () => {
         const initializeAuth = async () => {
             const user = await authService.getCurrentUser();
             setCurrentUser(user);
-            // Show AI key modal only if no API key is configured
-            setShowAIKeyModal(!aiService.hasApiKey());
+            // Show AI key modal only if:
+            // 1. No API key is configured, AND
+            // 2. Modal is not explicitly skipped via VITE_SKIP_OPENROUTER_MODAL flag
+            const skipModal = import.meta.env.VITE_SKIP_OPENROUTER_MODAL === 'true';
+            setShowAIKeyModal(!aiService.hasApiKey() && !skipModal);
         };
         initializeAuth();
     }, []);
