@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string;
   readonly VITE_GEMINI_API_KEY: string;
   readonly VITE_OPENROUTER_API_KEY: string;
+  readonly VITE_SKIP_OPENROUTER_MODAL: string;
 }
 
 interface ImportMeta {
