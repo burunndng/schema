@@ -82,7 +82,7 @@ async function setupDatabase() {
     `);
 
     console.log('📋 Tables in database:');
-    result.rows.forEach((row) => {
+    result.rows.forEach((row: any) => {
       console.log(`   - ${row.table_name}`);
     });
 

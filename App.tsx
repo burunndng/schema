@@ -17,6 +17,7 @@ import LoadingScreen from './components/LoadingScreen';
 import ResultsScreen from './components/ResultsScreen';
 import { PersistentChatbot } from './components/PersistentChatbot';
 import { BurundangaLogo } from './components/BurundangaLogo';
+import { MobileMenu } from './components/MobileMenu';
 import { Button } from './components/common/Button';
 import { Card } from './components/common/Card';
 import { AppState, TestResult, Answers, Test, YSCTestResult, YPITestResult, YPICategoryScores, YPICategory, Question, SMITestResult, SchemaMode, OITestResult, OICategory, TestType } from './types';
@@ -42,6 +43,9 @@ const App: React.FC = () => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [authPage, setAuthPage] = useState<'login' | 'register' | null>(null);
     const [showAIKeyModal, setShowAIKeyModal] = useState(false);
+
+    // Mobile menu state
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Initialize auth state on mount
     useEffect(() => {
@@ -269,7 +273,8 @@ const App: React.FC = () => {
                         <h1 className="text-2xl font-bold tracking-tight text-white group-hover:text-[var(--primary-400)] transition-colors">Burundanga</h1>
                     </button>
 
-                    <nav className="flex items-center gap-8">
+                    {/* Desktop Navigation - Hidden on mobile */}
+                    <nav className="hidden md:flex items-center gap-8">
                         <button
                             onClick={() => handleNavigate('home')}
                             className={`text-sm font-medium transition-all pb-1 border-b-2 ${currentPage === 'home' ? 'text-[var(--primary-500)] border-[var(--primary-500)]' : 'text-[var(--text-secondary)] border-transparent hover:text-white'}`}
@@ -362,8 +367,36 @@ const App: React.FC = () => {
                             )}
                         </div>
                     </nav>
+
+                    {/* Mobile Menu Button - Visible only on mobile */}
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="flex md:hidden items-center justify-center w-10 h-10 text-[var(--primary-500)] hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                        {mobileMenuOpen ? (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        ) : (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        )}
+                    </button>
                 </div>
             </header>
+
+            {/* Mobile Menu */}
+            <MobileMenu
+                isOpen={mobileMenuOpen}
+                onClose={() => setMobileMenuOpen(false)}
+                onNavigate={handleNavigate}
+                currentPage={currentPage}
+                currentUser={currentUser}
+                onLogout={handleLogout}
+                onNeedLogin={handleNeedLogin}
+            />
+
             <main className="flex-grow">
                 <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
                     {renderContent()}
