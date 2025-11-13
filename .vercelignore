@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+.git
+.gitignore
+README.md
+*.md
+
+# Database
+setup-db.ts
+prisma/migrations/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation
+MOBILE_*.md
+DATABASE_*.md
+FORUM_*.md
+COMPONENT_*.md
