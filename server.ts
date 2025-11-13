@@ -154,6 +154,42 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Special handling for demo account - allow registration with demo credentials
+    if (email === 'demo@burundanga.com' || username === 'DemoUser') {
+      // Try to find or create demo account
+      let demoUser = await prisma.user.findUnique({
+        where: { email: 'demo@burundanga.com' },
+      });
+
+      if (!demoUser) {
+        const hashedPassword = await bcrypt.hash('demo123', 10);
+        demoUser = await prisma.user.create({
+          data: {
+            username: 'DemoUser',
+            email: 'demo@burundanga.com',
+            password: hashedPassword,
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
+            isBot: false,
+          } as any,
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign({ userId: demoUser.id }, JWT_SECRET, { expiresIn: '7d' });
+
+      res.status(201).json({
+        user: {
+          id: demoUser.id,
+          username: demoUser.username,
+          email: demoUser.email,
+          avatar: demoUser.avatar,
+          createdAt: demoUser.createdAt,
+        },
+        token,
+      });
+      return;
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -207,6 +243,39 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Missing email or password' });
+    }
+
+    // Special handling for demo account - create if doesn't exist
+    if (email === 'demo@burundanga.com' && password === 'demo123') {
+      let demoUser = await prisma.user.findUnique({
+        where: { email: 'demo@burundanga.com' },
+      }) as any;
+
+      // Create demo account if it doesn't exist
+      if (!demoUser) {
+        const hashedPassword = await bcrypt.hash('demo123', 10);
+        demoUser = await prisma.user.create({
+          data: {
+            username: 'DemoUser',
+            email: 'demo@burundanga.com',
+            password: hashedPassword,
+            avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DemoUser',
+            isBot: false,
+          } as any,
+        });
+      }
+
+      // Generate JWT token
+      const token = jwt.sign({ userId: demoUser.id }, JWT_SECRET, { expiresIn: '7d' });
+
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = demoUser;
+
+      res.json({
+        user: userWithoutPassword,
+        token,
+      });
+      return;
     }
 
     // Find user by email (using findUnique without select to get all fields including password)
