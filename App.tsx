@@ -51,15 +51,26 @@ const App: React.FC = () => {
     // Initialize auth state on mount
     useEffect(() => {
         const initializeAuth = async () => {
+            console.log('[App] Initializing authentication...');
             let user = await authService.getCurrentUser();
+            console.log('[App] Current user:', user);
 
             // Auto-login as demo user if no user is logged in
             if (!user) {
+                console.log('[App] No user found, attempting auto-login as demo user...');
                 try {
                     user = await authService.login('demo@burundanga.com', 'demo123');
+                    if (user) {
+                        console.log('[App] Auto-login successful!');
+                    } else {
+                        console.warn('[App] Auto-login returned null. Is the Express server running? Run: npm run dev:server');
+                    }
                 } catch (error) {
-                    console.error('Failed to auto-login as demo user:', error);
+                    console.error('[App] Failed to auto-login as demo user:', error);
+                    console.error('[App] Make sure the Express server is running: npm run dev:server');
                 }
+            } else {
+                console.log('[App] User already logged in:', user.username);
             }
 
             setCurrentUser(user);
@@ -68,6 +79,7 @@ const App: React.FC = () => {
             // 2. Modal is not explicitly skipped via VITE_SKIP_OPENROUTER_MODAL flag
             const skipModal = import.meta.env.VITE_SKIP_OPENROUTER_MODAL === 'true';
             setShowAIKeyModal(!aiService.hasApiKey() && !skipModal);
+            console.log('[App] Initialization complete. User:', user?.username || 'None');
         };
         initializeAuth();
     }, []);

@@ -52,18 +52,25 @@ export const authService = {
   // Login user via API
   login: async (email: string, password: string): Promise<User | null> => {
     try {
+      console.log(`[Auth] Logging in user: ${email}`);
+      console.log(`[Auth] API URL: ${API_URL}`);
+
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ email, password }),
       });
 
+      console.log(`[Auth] Login response status: ${response.status}`);
+
       if (!response.ok) {
-        console.error('Login failed:', await response.text());
+        const errorText = await response.text();
+        console.error(`[Auth] Login failed with status ${response.status}:`, errorText);
         return null;
       }
 
       const data = await response.json();
+      console.log(`[Auth] Login successful for user:`, data.user);
       setToken(data.token);
 
       // Store user in localStorage for quick access
@@ -71,7 +78,8 @@ export const authService = {
 
       return data.user;
     } catch (error) {
-      console.error('Error logging in user:', error);
+      console.error('[Auth] Error logging in user:', error);
+      console.error('[Auth] Make sure the Express server is running with: npm run dev:server');
       return null;
     }
   },
@@ -98,9 +106,12 @@ export const authService = {
   getCurrentUser: async (): Promise<User | null> => {
     try {
       const token = getToken();
+      console.log(`[Auth] Getting current user, token exists: ${!!token}`);
+
       if (!token) {
         // Try to get from localStorage as fallback
         const userStr = localStorage.getItem(CURRENT_USER_KEY);
+        console.log(`[Auth] No token, checking localStorage fallback`);
         return userStr ? JSON.parse(userStr) : null;
       }
 
@@ -109,18 +120,23 @@ export const authService = {
         headers: getAuthHeaders(token),
       });
 
+      console.log(`[Auth] /api/auth/me response status: ${response.status}`);
+
       if (!response.ok) {
+        console.log(`[Auth] Current user API failed, clearing tokens`);
         removeToken();
         localStorage.removeItem(CURRENT_USER_KEY);
         return null;
       }
 
       const user = await response.json();
+      console.log(`[Auth] Got current user from API:`, user);
       localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
       return user;
     } catch (error) {
-      console.error('Error fetching current user:', error);
+      console.error('[Auth] Error fetching current user:', error);
       // Fallback to localStorage
+      console.log(`[Auth] Falling back to localStorage`);
       const userStr = localStorage.getItem(CURRENT_USER_KEY);
       return userStr ? JSON.parse(userStr) : null;
     }
