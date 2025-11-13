@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -32,7 +32,7 @@ model User {
 model Post {
   id        String     @id @default(cuid())
   title     String
-  content   String     @db.Text
+  content   String
   category  String
   pinned    Boolean    @default(false)
   upvotes   Int        @default(0)
@@ -51,7 +51,7 @@ model Post {
 
 model Reply {
   id        String     @id @default(cuid())
-  content   String     @db.Text
+  content   String
   upvotes   Int        @default(0)
 
   post      Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
