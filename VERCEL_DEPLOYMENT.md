@@ -20,15 +20,26 @@ This guide explains how to deploy Burundanga to Vercel.
    - **Output Directory**: `dist`
    - **Install Command**: `npm install`
 
-### 2. Set Environment Variables
+## 2. Set Environment Variables
 
-In Vercel Dashboard → Settings → Environment Variables, add:
+In **Vercel Dashboard → Settings → Environment Variables**, add:
 
 ```
 GEMINI_API_KEY = your_gemini_api_key_here
-DATABASE_URL = your_postgres_url (if using forum feature)
-REACT_APP_API_URL = http://localhost:3001 (for local dev, change in production)
+DATABASE_URL = your_postgres_url
+REACT_APP_API_URL = https://your-app-domain.com (or localhost:3001 for development)
 ```
+
+**Important**: Set the Scope to **Production, Preview, and Development** so the variables are available during build time.
+
+Steps:
+1. Go to Vercel Dashboard → Select your project
+2. Click **Settings** → **Environment Variables**
+3. Click **Add New** for each variable
+4. Enter the name and value
+5. Select all scopes (Production, Preview, Development)
+6. Click **Save**
+7. Redeploy your project
 
 ### 3. Deploy
 
@@ -43,14 +54,17 @@ Vercel will automatically build and deploy your changes.
 
 ### `vercel.json`
 Configures:
-- Build command: `npm run build`
-- Output directory: `dist`
-- Rewrites: Client-side routing (all unknown routes → index.html)
+- **Build command**: `npm run build`
+- **Output directory**: `dist`
+- **Rewrites**: Client-side routing (all unknown routes → index.html)
 
 This ensures:
-- Assets are served correctly
+- Assets are served correctly at the root path (`/`)
 - Deep linking works (e.g., `/forum`, `/discussions`)
 - Single Page Application routing functions properly
+- All routes served from `index.html` for client-side routing
+
+Note: Environment variables are set in Vercel Dashboard, not in this file.
 
 ### `vite.config.ts`
 Dynamically sets base path:
